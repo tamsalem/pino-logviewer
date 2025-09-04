@@ -2,8 +2,8 @@ import { useEffect, useCallback } from 'react';
 import LogEntry from '../LogEntry';
 import { type LogEntry as LogEntryType } from '@/src/type/logs';
 
-export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView } :
-    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean }
+export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern } :
+    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null }
 ) {
   // Handle keyboard navigation
   useEffect(() => {
@@ -76,6 +76,7 @@ export default function LogListView({ entries, selectedLogId, onSelectLog, onKey
             isExpanded={selectedLogId === entry.id}
             onClick={() => handleLogClick(entry.id)}
             isCompactView={isCompactView}
+            searchPattern={searchPattern}
           />
         ))}
       </div>

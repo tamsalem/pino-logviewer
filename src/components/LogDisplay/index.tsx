@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import LogListView from '../LogListView';
 import LogToolbar from '../LogToolbar';
 import LogDashboard from '../Dashboard';
@@ -13,6 +13,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const [sortOrder, setSortOrder] = useState('asc'); // 'desc' or 'asc'
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
   const scrollContainerRef = useRef(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   
   const filteredEntries = useMemo(() => {
     let filtered = [...entries];
@@ -56,6 +57,16 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     return filtered;
   }, [entries, filterLevels, searchQuery, timeRange, sortOrder]);
 
+  const searchPattern = useMemo(() => {
+    if (!searchQuery) return null as RegExp | null;
+    try {
+      return new RegExp(searchQuery, 'gi');
+    } catch {
+      const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(escaped, 'gi');
+    }
+  }, [searchQuery]);
+
   const handleSelectLog = useCallback((logId: number) => {
     setSelectedLogId(selectedLogId === logId ? null : logId);
   }, [selectedLogId]);
@@ -81,6 +92,34 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     }
   }, [filteredEntries, selectedLogId]);
 
+  // Global shortcuts: Cmd/Ctrl+F focuses search; PageUp/PageDown scrolls to top/bottom
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      if (cmdOrCtrl && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select?.();
+        return;
+      }
+      if (e.key === 'PageUp') {
+        e.preventDefault();
+        const el: any = scrollContainerRef.current;
+        if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (e.key === 'PageDown') {
+        e.preventDefault();
+        const el: any = scrollContainerRef.current;
+        if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+        return;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   return (
     <div className="h-full flex flex-col bg-gray-900">
       <LogToolbar
@@ -98,6 +137,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         setTimeRange={setTimeRange}
         onToggleDashboard={handleToggleDashboard}
         isDashboardVisible={isDashboardVisible}
+        searchInputRef={searchInputRef}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0 bg-gray-900">
@@ -108,6 +148,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
           onKeyNavigation={handleKeyNavigation}
           scrollContainerRef={scrollContainerRef}
           isCompactView={false}
+          searchPattern={searchPattern}
         />
       </div>
     </div>

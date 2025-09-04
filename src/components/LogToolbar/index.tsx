@@ -43,6 +43,7 @@ export default function LogToolbar(params: {
   setTimeRange: (_:any) => void,
   isDashboardVisible: boolean,
   onToggleDashboard: (_:any) => void,
+  searchInputRef?: React.RefObject<HTMLInputElement>,
 }) {
   const {
     fileName,
@@ -59,8 +60,10 @@ export default function LogToolbar(params: {
     setTimeRange,
     isDashboardVisible,
     onToggleDashboard,
+    searchInputRef,
   } = params
   const [inputValue, setInputValue] = useState(searchQuery);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Debounce the search input
   useEffect(() => {
@@ -111,6 +114,7 @@ export default function LogToolbar(params: {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 className="bg-gray-800 border-gray-700 pl-9 text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
+                ref={searchInputRef as any}
             />
           </div>
 
@@ -233,16 +237,49 @@ export default function LogToolbar(params: {
               /
               <span className="font-bold text-gray-300">{totalCount.toLocaleString()}</span>
             </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={onClear} className="text-gray-400 hover:bg-gray-700 hover:text-white">
-                  <X className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
-                <p>Clear log file</p>
-              </TooltipContent>
-            </Tooltip>
+            <Popover open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setConfirmOpen(true)}
+                        className="text-gray-400 hover:bg-gray-700 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
+                  <p>Clear log file</p>
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent className="w-80 bg-gray-800 border border-gray-700 shadow-xl rounded-md p-4" align="end">
+                <div className="space-y-3">
+                  <div className="text-sm text-gray-300 font-medium">Clear current log?</div>
+                  <p className="text-xs text-gray-400">This action removes the loaded entries from view.</p>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-300 hover:text-white hover:bg-gray-700"
+                      onClick={() => setConfirmOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-600 text-red-300 hover:bg-red-600/20 hover:text-red-200"
+                      onClick={() => { setConfirmOpen(false); onClear(null); }}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
