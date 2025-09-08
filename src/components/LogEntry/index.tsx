@@ -11,7 +11,7 @@ const levelColors = {
   [LogLevel.DEBUG]: 'bg-green-500/10 text-green-300 border-l-green-500', // debug
 };
 
-const JsonViewer = ({ data }: { data: unknown }) => {
+const JsonViewer = ({ data, searchPattern }: { data: unknown, searchPattern: RegExp | null }) => {
   const renderValue = (key:number | string | null, value:unknown, level = 0) => {
     const indent = '  '.repeat(Math.max(0, level));
     
@@ -19,7 +19,7 @@ const JsonViewer = ({ data }: { data: unknown }) => {
       return <span className="text-purple-400">null</span>;
     }
     if (typeof value === 'string') {
-      return <span className="text-green-400">"{value}"</span>;
+      return <span className="text-green-400">"{highlightText(value, searchPattern)}"</span>;
     }
     if (typeof value === 'number') {
       return <span className="text-orange-400">{value}</span>;
@@ -57,7 +57,7 @@ const JsonViewer = ({ data }: { data: unknown }) => {
           <div className="pl-4">
             {entries.map(([k, v], index) => (
               <div key={k}>
-                <span className="text-blue-400">"{k}"</span>
+                <span className="text-blue-400">"{highlightText(String(k), searchPattern)}"</span>
                 <span className="text-gray-400">: </span>
                 {renderValue(k, v, level + 1)}
                 {index < entries.length - 1 && <span className="text-gray-400">,</span>}
@@ -96,8 +96,34 @@ const handleCopyToClipboard = (text: string) => {
     });
 };
 
-export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView }: 
-    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean }) {
+const highlightText = (text: string, pattern: RegExp | null) => {
+  if (!pattern || !text) return text;
+  const segments: React.ReactNode[] = [];
+  let lastIndex = 0;
+  pattern.lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(text)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
+    if (start > lastIndex) {
+      segments.push(text.slice(lastIndex, start));
+    }
+    segments.push(
+      <mark key={`${start}-${end}`} className="bg-yellow-500/60 text-gray-900 rounded px-0.5">
+        {text.slice(start, end)}
+      </mark>
+    );
+    lastIndex = end;
+    if (pattern.lastIndex === start) pattern.lastIndex++; // avoid zero-length loops
+  }
+  if (lastIndex < text.length) {
+    segments.push(text.slice(lastIndex));
+  }
+  return <>{segments}</>;
+};
+
+export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern }: 
+    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null }) {
   const levelName = entry.level || LogLevel.INFO;
   const levelColor = levelColors[levelName];
 
@@ -134,7 +160,7 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
           </span>
           
           <span className={`text-gray-200 flex-grow truncate font-mono ${isCompactView ? 'text-xs' : 'text-sm'}`}>
-            {entry.message || 'No message'}
+            {highlightText(entry.message || 'No message', searchPattern)}
           </span>
         </div>
       </div>
@@ -195,7 +221,7 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
                   <div className="col-span-2">
                     <span className="text-gray-500">Message:</span>
                     <div className="font-mono text-gray-300 mt-1 break-words">
-                      {entry.message || 'No message'}
+                      {highlightText(entry.message || 'No message', searchPattern)}
                     </div>
                   </div>
                 </div>
@@ -204,10 +230,10 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
                   <h4 className="text-gray-400 font-medium mb-2">Raw Data:</h4>
                   <div className="bg-gray-950 rounded-md p-3 overflow-x-auto">
                     {entry.isJson ? (
-                      <JsonViewer data={entry.data} />
+                      <JsonViewer data={entry.data} searchPattern={searchPattern} />
                     ) : (
                       <pre className="font-mono text-sm text-gray-300 whitespace-pre-wrap">
-                        {entry.raw}
+                        {highlightText(entry.raw, searchPattern)}
                       </pre>
                     )}
                   </div>
