@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, File, Search, Calendar, ArrowDownUp, BarChart3 } from 'lucide-react';
+import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -20,6 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '../../../components/ui';
+import { Sparkles } from 'lucide-react';
 
 const levelOptions = [
   { value: 'ERROR', label: 'Error', color: 'bg-red-500' },
@@ -44,6 +45,8 @@ export default function LogToolbar(params: {
   isDashboardVisible: boolean,
   onToggleDashboard: (_:any) => void,
   searchInputRef?: React.RefObject<HTMLInputElement>,
+  onExplainIncident?: () => void,
+  llmAvailable?: 'none' | 'ollama',
 }) {
   const {
     fileName,
@@ -61,9 +64,13 @@ export default function LogToolbar(params: {
     isDashboardVisible,
     onToggleDashboard,
     searchInputRef,
+    onExplainIncident,
+    llmAvailable,
   } = params
   const [inputValue, setInputValue] = useState(searchQuery);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // Removed API key UI per request
+  const [ollamaDialogOpen, setOllamaDialogOpen] = useState(false);
 
   // Debounce the search input
   useEffect(() => {
@@ -182,6 +189,44 @@ export default function LogToolbar(params: {
             </PopoverContent>
           </Popover>
 
+          {/* Local AI (Ollama) Help */}
+          <Popover open={ollamaDialogOpen} onOpenChange={setOllamaDialogOpen}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700"
+                  >
+                    Local AI
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
+                <p>Run summaries with Ollama locally</p>
+              </TooltipContent>
+            </Tooltip>
+            <PopoverContent className="w-[520px] bg-gray-800 border border-gray-700 shadow-xl rounded-md p-4" align="end">
+              <div className="space-y-3">
+                <div className="text-sm text-gray-300 font-medium">Run a local LLM with Ollama (macOS)</div>
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">1) Install Ollama</div>
+                  <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">brew install ollama</pre>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">2) Start the server</div>
+                  <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama serve</pre>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">3) Pull a model (first time)</div>
+                  <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama pull llama3.1:8b</pre>
+                </div>
+                <div className="text-xs text-gray-500">Once running at http://localhost:11434, the app will use it automatically when no cloud key is set.</div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
           {/* Sort Button */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -215,6 +260,34 @@ export default function LogToolbar(params: {
               <p>Toggle analytics dashboard</p>
             </TooltipContent>
           </Tooltip>
+
+          {/* Explain Incident */}
+          {onExplainIncident && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onExplainIncident}
+                  className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700"
+                >
+                  <Sparkles className="w-4 h-4 mr-2 text-indigo-400" />
+                  Explain
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
+                <p>Analyze current view and summarize incident</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* LLM status indicator (next to the button) */}
+          <div className="flex items-center gap-1 text-xs select-none">
+            <Circle className={`w-2.5 h-2.5 ${llmAvailable === 'ollama' ? 'text-green-400' : 'text-red-500'}`} fill="currentColor" />
+            <span className="text-gray-400">{llmAvailable === 'ollama' ? 'Local AI ready' : 'Local AI offline'}</span>
+          </div>
+
+          {/* API Key UI removed */}
 
           {/* Clear Filters Button */}
           {activeFiltersCount > 0 && (

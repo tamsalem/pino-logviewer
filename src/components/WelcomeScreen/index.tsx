@@ -49,6 +49,26 @@ export default function WelcomeScreen({ onFileUpload } : { onFileUpload: (_:any)
           </div>
         </div>
       </div>
+
+      <div className="mt-12 bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+        <h3 className="text-xl font-semibold text-white mb-3">Run Local AI (Ollama)</h3>
+        <p className="text-sm text-gray-400 mb-4">Use a local LLM to power incident summaries without any cloud API keys.</p>
+        <div className="space-y-3">
+          <div>
+            <div className="text-xs text-gray-400 mb-1">1) Install Ollama</div>
+            <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">brew install ollama</pre>
+          </div>
+          <div>
+            <div className="text-xs text-gray-400 mb-1">2) Start the server</div>
+            <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama serve</pre>
+          </div>
+          <div>
+            <div className="text-xs text-gray-400 mb-1">3) Pull a model (first time)</div>
+            <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama pull llama3.1:8b</pre>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-4">Once running at http://localhost:11434, the app will use it automatically.</p>
+      </div>
     </div>
   );
 }

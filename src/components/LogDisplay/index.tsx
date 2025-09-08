@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import LogListView from '../LogListView';
 import LogToolbar from '../LogToolbar';
 import LogDashboard from '../Dashboard';
+import IncidentDrawer from '../IncidentDrawer';
+import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../analysis';
 import { startOfDay, endOfDay } from 'date-fns';
 import { type LogEntry } from '../../type/logs';
 
@@ -12,6 +14,11 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const [timeRange, setTimeRange] = useState<{start?: Date; end?: Date}>({});
   const [sortOrder, setSortOrder] = useState('asc'); // 'desc' or 'asc'
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
+  const [isIncidentOpen, setIsIncidentOpen] = useState(false);
+  const [incident, setIncident] = useState<IncidentAnalysis | null>(null);
+  const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>('none');
+  const [llmLoading, setLlmLoading] = useState(false);
+  const lastSummarizedFileRef = useRef<string | null>(null);
   const scrollContainerRef = useRef(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   
@@ -120,6 +127,42 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Check LLM availability (Ollama only)
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('http://localhost:11434/api/tags')
+        setLlmAvailable(res.ok ? 'ollama' : 'none')
+      } catch {
+        setLlmAvailable('none')
+      }
+    })()
+  }, [])
+
+  const handleExplainIncident = useCallback(() => {
+    // run on current filteredEntries
+    const analysis = analyzeIncident(filteredEntries as any);
+    setIncident(analysis);
+    setIsIncidentOpen(true);
+    // Try upgrading with LLM if configured
+    void (async () => {
+      // Skip if already summarized for this exact file
+      if (fileName && lastSummarizedFileRef.current === fileName && incident?.llmSummary) {
+        return;
+      }
+      setLlmLoading(true);
+      try {
+        const llm = await summarizeIncidentWithOllama(analysis);
+        if (llm) {
+          setIncident(prev => prev ? { ...prev, llmSummary: llm } : prev);
+          if (fileName) lastSummarizedFileRef.current = fileName;
+        }
+      } finally {
+        setLlmLoading(false);
+      }
+    })();
+  }, [filteredEntries, fileName, incident]);
+
   return (
     <div className="h-full flex flex-col bg-gray-900">
       <LogToolbar
@@ -138,6 +181,8 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         onToggleDashboard={handleToggleDashboard}
         isDashboardVisible={isDashboardVisible}
         searchInputRef={searchInputRef}
+        onExplainIncident={handleExplainIncident}
+        llmAvailable={llmAvailable}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0 bg-gray-900">
@@ -151,6 +196,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
           searchPattern={searchPattern}
         />
       </div>
+      <IncidentDrawer open={isIncidentOpen} onClose={() => setIsIncidentOpen(false)} analysis={incident} llmAvailable={llmAvailable} llmLoading={llmLoading} />
     </div>
   );
 }
