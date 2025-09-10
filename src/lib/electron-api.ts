@@ -12,5 +12,5 @@ export const electronAPI = {
   saveHistory: (logs: any[]) => window.ipcRenderer.invoke('save-history', logs),
   getHistory: () => window.ipcRenderer.invoke('get-history'),
   loadHistoryEntry: (id: string) => window.ipcRenderer.invoke('load-history-entry', id),
-  clearHistory: () => window.ipcRenderer.invoke('clear-history'),
+  clearHistory: (id?: string) => window.ipcRenderer.invoke('clear-history', id),
 };

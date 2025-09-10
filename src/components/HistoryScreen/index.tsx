@@ -95,7 +95,7 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
       onLoadHistory(logs, `History - ${new Date(entry.timestamp).toLocaleString()}`);
     } catch (error) {
       console.error('Failed to load history entry:', error);
-      alert(`Failed to load history entry: ${error.message}`);
+      alert(`Failed to load history entry: ${(error as { message?: string })?.['message']}`);
     }
   };
 

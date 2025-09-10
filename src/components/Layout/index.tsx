@@ -68,12 +68,6 @@ export default function Layout({ children, onFileUpload, onShowHistory }: {
       <SettingsSidebar 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)}
-        onLoadHistory={(logs) => {
-          if (onFileUpload) {
-            onFileUpload({ entries: logs, name: 'history' });
-          }
-          setIsSettingsOpen(false);
-        }}
       />
     </div>
   );

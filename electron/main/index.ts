@@ -247,7 +247,7 @@ ipcMain.handle('load-history-entry', async (_, id: string) => {
     return entry.logs;
   } catch (error) {
     console.error('Failed to load history entry:', error);
-    throw new Error(`Failed to load history entry: ${error.message}`);
+    throw new Error(`Failed to load history entry: ${(error as { message?: string })?.message}`);
   }
 });
 
