@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../../../components/ui';
 import { LogEntry, LogLevel } from '../../type/logs';
 import { parseLogText } from '../../Utils';
+import { electronAPI } from '../../lib/electron-api';
 
 export default function LogPaste({ onLogsParsed }: { onLogsParsed: (_:any) => void }) {
     const [text, setText] = useState('');
@@ -13,13 +14,21 @@ export default function LogPaste({ onLogsParsed }: { onLogsParsed: (_:any) => vo
         return parseLogText(content)
     }, []);
 
-    const handleParse = () => {
+    const handleParse = async () => {
         try {
             const entries = parseLog(text);
             if (entries.length === 0) {
                 setError('No valid logs detected');
                 return;
             }
+            
+            // Save to history
+            try {
+                await electronAPI.saveHistory(entries);
+            } catch (err) {
+                console.warn('Failed to save to history:', err);
+            }
+            
             onLogsParsed({ entries, name: 'pasted-logs' });
         } catch (err) {
             setError('Failed to parse pasted logs');

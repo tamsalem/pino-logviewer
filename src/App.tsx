@@ -30,7 +30,7 @@ export default function LogViewerPage() {
   }, []);
 
   return (
-    <Layout>
+    <Layout onFileUpload={handleFileUpload}>
       <div className="flex flex-col bg-gray-900" style={{ height: '100%' }}>
         <AnimatePresence mode="wait">
           {logEntries.length === 0 ? (

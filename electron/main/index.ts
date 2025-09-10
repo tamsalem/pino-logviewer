@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import { randomUUID } from 'node:crypto'
 import { update } from './update'
 
 const require = createRequire(import.meta.url)
@@ -11,6 +12,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // keep file paths that arrive before renderer is ready
 const pendingOpenPaths: string[] = [];
 let rendererReady = false;
+
+// Settings and history storage
+const SETTINGS_FILE = path.join(os.homedir(), '.pino-logviewer', 'settings.json');
+const HISTORY_DIR = path.join(os.homedir(), '.pino-logviewer', 'history');
+
+interface Settings {
+  retentionDays: number;
+}
+
+interface HistoryEntry {
+  id: string;
+  timestamp: number;
+  logCount: number;
+  preview: string;
+  logs: any[];
+}
+
+// Ensure directories exist
+async function ensureDirectories() {
+  const settingsDir = path.dirname(SETTINGS_FILE);
+  await fs.mkdir(settingsDir, { recursive: true });
+  await fs.mkdir(HISTORY_DIR, { recursive: true });
+}
 
 // The built directory structure
 //
@@ -105,7 +129,10 @@ async function createWindow() {
     update(win)
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  await ensureDirectories();
+  createWindow();
+})
 
 app.on('window-all-closed', () => {
     win = null
@@ -141,6 +168,108 @@ app.on('open-file', (event, filePath) => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
+
+// Settings IPC handlers
+ipcMain.handle('get-settings', async () => {
+  try {
+    const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    return { retentionDays: 7 }; // default
+  }
+});
+
+ipcMain.handle('set-settings', async (_, settings: Settings) => {
+  await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+});
+
+// History IPC handlers
+ipcMain.handle('save-history', async (_, logs: any[]) => {
+  const id = randomUUID();
+  const timestamp = Date.now();
+  const preview = logs.length > 0 ? logs[0].message || logs[0].raw || 'No preview' : 'Empty log';
+  
+  const entry: HistoryEntry = {
+    id,
+    timestamp,
+    logCount: logs.length,
+    preview: preview.substring(0, 100),
+    logs
+  };
+  
+  const historyFile = path.join(HISTORY_DIR, `${id}.json`);
+  await fs.writeFile(historyFile, JSON.stringify(entry, null, 2));
+  
+  // Clean up old entries
+  await cleanupOldHistory();
+  
+  return id;
+});
+
+ipcMain.handle('get-history', async () => {
+  try {
+    const files = await fs.readdir(HISTORY_DIR);
+    const entries: HistoryEntry[] = [];
+    
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        const filePath = path.join(HISTORY_DIR, file);
+        const data = await fs.readFile(filePath, 'utf8');
+        const entry = JSON.parse(data);
+        entries.push({
+          id: entry.id,
+          timestamp: entry.timestamp,
+          logCount: entry.logCount,
+          preview: entry.preview,
+          logs: [] // We don't need to load the full logs for the list view
+        });
+      }
+    }
+    
+    return entries.sort((a, b) => b.timestamp - a.timestamp);
+  } catch (error) {
+    return [];
+  }
+});
+
+ipcMain.handle('load-history-entry', async (_, id: string) => {
+  const historyFile = path.join(HISTORY_DIR, `${id}.json`);
+  const data = await fs.readFile(historyFile, 'utf8');
+  const entry: HistoryEntry = JSON.parse(data);
+  return entry.logs;
+});
+
+ipcMain.handle('clear-history', async () => {
+  const files = await fs.readdir(HISTORY_DIR);
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      await fs.unlink(path.join(HISTORY_DIR, file));
+    }
+  }
+});
+
+async function cleanupOldHistory() {
+  try {
+    const settings = await fs.readFile(SETTINGS_FILE, 'utf8');
+    const { retentionDays } = JSON.parse(settings);
+    const cutoffTime = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+    
+    const files = await fs.readdir(HISTORY_DIR);
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        const filePath = path.join(HISTORY_DIR, file);
+        const data = await fs.readFile(filePath, 'utf8');
+        const entry = JSON.parse(data);
+        
+        if (entry.timestamp < cutoffTime) {
+          await fs.unlink(filePath);
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore cleanup errors
+  }
+}
 
 // New window example arg: new windows url
 ipcMain.handle('open-win', (_, arg) => {

@@ -1,6 +1,11 @@
-import { Logs } from 'lucide-react';
+import { Logs, Settings } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { useState } from 'react';
+import { SettingsSidebar } from '../SettingsSidebar';
 
-export default function Layout({ children }: { children:any }) {
+export default function Layout({ children, onFileUpload }: { children:any, onFileUpload?: (data: { entries: any[], name: string }) => void }) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   return (
     <div className="h-screen bg-gray-900 text-gray-200 font-sans flex flex-col">
       <style>{`
@@ -29,12 +34,34 @@ export default function Layout({ children }: { children:any }) {
                 Pino Log Viewer
               </h1>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSettingsOpen(true)}
+                className="text-gray-400 hover:text-white hover:bg-gray-800 flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </Button>
+            </div>
           </div>
         </div>
       </header>
       <main className="flex-grow min-h-0 bg-gray-900 scrollbar-track-gray-800">
         {children}
       </main>
+      
+      <SettingsSidebar 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        onLoadHistory={(logs) => {
+          if (onFileUpload) {
+            onFileUpload({ entries: logs, name: 'history' });
+          }
+          setIsSettingsOpen(false);
+        }}
+      />
     </div>
   );
 }

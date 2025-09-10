@@ -26,7 +26,8 @@ const levelOptions = [
   { value: 'ERROR', label: 'Error', color: 'bg-red-500' },
   { value: 'WARN', label: 'Warn', color: 'bg-yellow-500' },
   { value: 'INFO', label: 'Info', color: 'bg-blue-500' },
-  { value: 'DEBUG', label: 'Debug', color: 'bg-green-500' },
+  { value: 'DEBUG', label: 'Debug', color: 'bg-gray-500' },
+  { value: 'NO_LEVEL', label: 'No Level', color: 'bg-white' },
 ];
 
 export default function LogToolbar(params: {
@@ -129,7 +130,7 @@ export default function LogToolbar(params: {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700">
-                Level {filterLevels.length > 0 && `(${filterLevels.length})`}
+                Level {filterLevels.length < levelOptions.length && `(${levelOptions.length - filterLevels.length} hidden)`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700 text-gray-200">

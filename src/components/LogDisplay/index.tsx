@@ -9,7 +9,7 @@ import { type LogEntry } from '../../type/logs';
 
 export default function LogDisplay({ entries, fileName, onClear }: { entries: LogEntry[], fileName: string, onClear: (_:any) => void }) {
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
-  const [filterLevels, setFilterLevels] = useState<string[]>([]);
+  const [filterLevels, setFilterLevels] = useState<string[]>(['ERROR', 'WARN', 'INFO', 'DEBUG', 'NO_LEVEL']);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeRange, setTimeRange] = useState<{start?: Date; end?: Date}>({});
   const [sortOrder, setSortOrder] = useState('asc'); // 'desc' or 'asc'
@@ -25,9 +25,12 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const filteredEntries = useMemo(() => {
     let filtered = [...entries];
 
-    // Level filter
+    // Level filter - now works as exclusion filter (show all except unchecked levels)
     if (filterLevels.length > 0) {
-      filtered = filtered.filter(entry => filterLevels.includes(entry.level as string));
+      filtered = filtered.filter(entry => {
+        const entryLevel = entry.level || 'NO_LEVEL';
+        return filterLevels.includes(entryLevel);
+      });
     }
 
     // Search filter
