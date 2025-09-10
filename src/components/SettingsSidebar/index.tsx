@@ -3,33 +3,22 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
-import { Copy, Check, Settings, History, Trash2, Info } from 'lucide-react';
+import { Copy, Check, Settings, Clock } from 'lucide-react';
 import { electronAPI } from '../../lib/electron-api';
 
 interface SettingsSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoadHistory?: (logs: any[]) => void;
 }
 
-interface HistoryEntry {
-  id: string;
-  timestamp: number;
-  logCount: number;
-  preview: string;
-}
-
-export function SettingsSidebar({ isOpen, onClose, onLoadHistory }: SettingsSidebarProps) {
+export function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProps) {
   const [retentionDays, setRetentionDays] = useState(7);
-  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
-  const [isStorageInfoOpen, setIsStorageInfoOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       loadSettings();
-      loadHistory();
       checkOllamaStatus();
     }
   }, [isOpen]);
@@ -43,41 +32,11 @@ export function SettingsSidebar({ isOpen, onClose, onLoadHistory }: SettingsSide
     }
   };
 
-  const loadHistory = async () => {
-    try {
-      const history = await electronAPI.getHistory();
-      setHistoryEntries(history);
-    } catch (error) {
-      console.error('Failed to load history:', error);
-    }
-  };
-
   const saveSettings = async () => {
     try {
       await electronAPI.setSettings({ retentionDays });
     } catch (error) {
       console.error('Failed to save settings:', error);
-    }
-  };
-
-  const clearHistory = async () => {
-    try {
-      await electronAPI.clearHistory();
-      setHistoryEntries([]);
-    } catch (error) {
-      console.error('Failed to clear history:', error);
-    }
-  };
-
-  const loadHistoryEntry = async (id: string) => {
-    try {
-      const logs = await electronAPI.loadHistoryEntry(id);
-      if (onLoadHistory) {
-        onLoadHistory(logs);
-      }
-      onClose();
-    } catch (error) {
-      console.error('Failed to load history entry:', error);
     }
   };
 
@@ -220,42 +179,13 @@ export function SettingsSidebar({ isOpen, onClose, onLoadHistory }: SettingsSide
 
           <div className="border-t border-gray-700" />
 
-          {/* History Settings Section */}
+          {/* History Retention Settings Section */}
           <Card className="bg-gray-800/60 border-gray-700">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-gray-200 text-base flex items-center gap-2">
-                  <History className="w-4 h-4" />
-                  History Settings
-                </CardTitle>
-                <Popover open={isStorageInfoOpen} onOpenChange={setIsStorageInfoOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-400 hover:text-white p-1 h-auto"
-                    >
-                      <Info className="w-4 h-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-gray-800 border-gray-700 text-gray-200">
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-gray-200">Storage Information</h4>
-                      <div className="space-y-2 text-sm">
-                        <p className="text-gray-300">
-                          <strong>Location:</strong> <code className="text-gray-400">~/.pino-logviewer/history/</code>
-                        </p>
-                        <p className="text-gray-400">
-                          History files are stored locally on your machine and automatically cleaned up based on your retention settings.
-                        </p>
-                        <p className="text-gray-400">
-                          Each pasted log entry is saved as a separate JSON file with a unique identifier.
-                        </p>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <CardTitle className="text-gray-200 text-base flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                History Retention
+              </CardTitle>
               <CardDescription className="text-gray-400">
                 Configure how long to keep pasted log history
               </CardDescription>
@@ -288,67 +218,6 @@ export function SettingsSidebar({ isOpen, onClose, onLoadHistory }: SettingsSide
             </CardContent>
           </Card>
 
-          <div className="border-t border-gray-700" />
-
-          {/* History Management Section */}
-          <Card className="bg-gray-800/60 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-200 text-base flex items-center gap-2">
-                <History className="w-4 h-4" />
-                Log History
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Manage your pasted log history
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {historyEntries.length === 0 ? (
-                <p className="text-gray-500 text-sm">No history entries found</p>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-300 text-sm">
-                      {historyEntries.length} entries
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={clearHistory}
-                      className="text-red-400 hover:text-red-300 flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Clear All
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {historyEntries.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="bg-gray-900/60 border border-gray-700 rounded p-3 cursor-pointer hover:bg-gray-800/60 transition-colors"
-                        onClick={() => loadHistoryEntry(entry.id)}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-gray-300 text-xs font-mono">
-                            {entry.id.substring(0, 8)}...
-                          </span>
-                          <span className="text-gray-500 text-xs">
-                            {new Date(entry.timestamp).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="text-gray-400 text-xs mb-1">
-                          {entry.logCount} logs
-                        </div>
-                        <div className="text-gray-500 text-xs truncate">
-                          {entry.preview}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

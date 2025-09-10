@@ -233,17 +233,39 @@ ipcMain.handle('get-history', async () => {
 });
 
 ipcMain.handle('load-history-entry', async (_, id: string) => {
-  const historyFile = path.join(HISTORY_DIR, `${id}.json`);
-  const data = await fs.readFile(historyFile, 'utf8');
-  const entry: HistoryEntry = JSON.parse(data);
-  return entry.logs;
+  try {
+    const historyFile = path.join(HISTORY_DIR, `${id}.json`);
+    const data = await fs.readFile(historyFile, 'utf8');
+    const entry: HistoryEntry = JSON.parse(data);
+    
+    if (!entry.logs || !Array.isArray(entry.logs)) {
+      console.error('Invalid entry data - logs is not an array:', entry);
+      throw new Error('Invalid entry data - logs is not an array');
+    }
+    
+    return entry.logs;
+  } catch (error) {
+    console.error('Failed to load history entry:', error);
+    throw new Error(`Failed to load history entry: ${error.message}`);
+  }
 });
 
-ipcMain.handle('clear-history', async () => {
-  const files = await fs.readdir(HISTORY_DIR);
-  for (const file of files) {
-    if (file.endsWith('.json')) {
-      await fs.unlink(path.join(HISTORY_DIR, file));
+ipcMain.handle('clear-history', async (_, id?: string) => {
+  if (id) {
+    // Clear specific entry
+    const historyFile = path.join(HISTORY_DIR, `${id}.json`);
+    try {
+      await fs.unlink(historyFile);
+    } catch (error) {
+      console.error('Failed to delete history entry:', error);
+    }
+  } else {
+    // Clear all history
+    const files = await fs.readdir(HISTORY_DIR);
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        await fs.unlink(path.join(HISTORY_DIR, file));
+      }
     }
   }
 });

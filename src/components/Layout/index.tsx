@@ -1,9 +1,13 @@
-import { Logs, Settings } from 'lucide-react';
+import { Logs, Settings, History } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { useState } from 'react';
 import { SettingsSidebar } from '../SettingsSidebar';
 
-export default function Layout({ children, onFileUpload }: { children:any, onFileUpload?: (data: { entries: any[], name: string }) => void }) {
+export default function Layout({ children, onFileUpload, onShowHistory }: { 
+  children: any, 
+  onFileUpload?: (data: { entries: any[], name: string }) => void,
+  onShowHistory?: () => void 
+}) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
@@ -35,6 +39,15 @@ export default function Layout({ children, onFileUpload }: { children:any, onFil
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onShowHistory}
+                className="text-gray-400 hover:text-white hover:bg-gray-800 flex items-center gap-2"
+              >
+                <History className="w-4 h-4" />
+                History
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"

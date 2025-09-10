@@ -12,6 +12,6 @@ interface Window {
     saveHistory: (logs: any[]) => Promise<string>;
     getHistory: () => Promise<any[]>;
     loadHistoryEntry: (id: string) => Promise<any[]>;
-    clearHistory: () => Promise<void>;
+    clearHistory: (id?: string) => Promise<void>;
   };
 }

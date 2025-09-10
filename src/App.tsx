@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import LogDisplay from './components/LogDisplay';
 import WelcomeScreen from './components/WelcomeScreen';
+import HistoryScreen from './components/HistoryScreen';
 import Layout from './components/Layout';
 import { LogEntry } from './type/logs';
 import { parseLogText } from './Utils';
@@ -11,6 +12,7 @@ import './App.css'
 export default function LogViewerPage() {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [fileName, setFileName] = useState('');
+  const [currentScreen, setCurrentScreen] = useState<'welcome' | 'display' | 'history'>('welcome');
 
   useEffect(() => {
     window.electronAPI.onFileOpened(({ path, content }) => {
@@ -20,20 +22,52 @@ export default function LogViewerPage() {
   }, [window.electronAPI.onFileOpened]);
 
   const handleFileUpload = useCallback(({ entries, name }: { entries: LogEntry[], name:string }) => {
+    if (!entries || !Array.isArray(entries)) {
+      console.error('Invalid entries data received:', entries);
+      return;
+    }
     setLogEntries(entries);
     setFileName(name);
+    setCurrentScreen('display');
   }, []);
 
   const handleClear = useCallback(() => {
     setLogEntries([]);
     setFileName('');
+    setCurrentScreen('welcome');
   }, []);
 
+  const handleShowHistory = useCallback(() => {
+    setCurrentScreen('history');
+  }, []);
+
+  const handleBackFromHistory = useCallback(() => {
+    setCurrentScreen('welcome');
+  }, []);
+
+  const handleLoadHistory = useCallback((logs: LogEntry[], name: string) => {
+    handleFileUpload({ entries: logs, name });
+  }, [handleFileUpload]);
+
   return (
-    <Layout onFileUpload={handleFileUpload}>
+    <Layout onFileUpload={handleFileUpload} onShowHistory={handleShowHistory}>
       <div className="flex flex-col bg-gray-900" style={{ height: '100%' }}>
         <AnimatePresence mode="wait">
-          {logEntries.length === 0 ? (
+          {currentScreen === 'history' ? (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, x: 300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 300 }}
+              transition={{ duration: 0.3 }}
+              className="flex-grow min-h-0"
+            >
+              <HistoryScreen 
+                onBack={handleBackFromHistory}
+                onLoadHistory={handleLoadHistory}
+              />
+            </motion.div>
+          ) : logEntries.length === 0 ? (
             <motion.div
               key="uploader"
               initial={{ opacity: 0, scale: 0.95 }}
