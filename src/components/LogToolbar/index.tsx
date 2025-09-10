@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle } from 'lucide-react';
+import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +21,7 @@ import {
   PopoverTrigger,
 } from '../../../components/ui';
 import { Sparkles } from 'lucide-react';
+import { exportToCSV, exportToJSON, getFilteredLogs, type LogEntry, type ExportOptions } from '../../lib/export-utils';
 
 const levelOptions = [
   { value: 'ERROR', label: 'Error', color: 'bg-red-500' },
@@ -48,6 +49,8 @@ export default function LogToolbar(params: {
   searchInputRef?: React.RefObject<HTMLInputElement>,
   onExplainIncident?: () => void,
   llmAvailable?: 'none' | 'ollama',
+  allLogs: LogEntry[],
+  filteredLogs: LogEntry[],
 }) {
   const {
     fileName,
@@ -67,6 +70,8 @@ export default function LogToolbar(params: {
     searchInputRef,
     onExplainIncident,
     llmAvailable,
+    allLogs,
+    filteredLogs,
   } = params
   const [inputValue, setInputValue] = useState(searchQuery);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -102,6 +107,26 @@ export default function LogToolbar(params: {
     searchQuery !== '',
     timeRange.start || timeRange.end,
   ].filter(Boolean).length;
+
+  // Export functions
+  const handleExportCSV = () => {
+    const options: ExportOptions = {
+      filename: `${fileName.replace(/\.[^/.]+$/, '')}-export.csv`,
+      includeMetadata: true,
+      dateRange: timeRange.start && timeRange.end ? { start: timeRange.start, end: timeRange.end } : undefined
+    };
+    exportToCSV(filteredLogs, options);
+  };
+
+  const handleExportJSON = () => {
+    const options: ExportOptions = {
+      filename: `${fileName.replace(/\.[^/.]+$/, '')}-export.json`,
+      includeMetadata: true,
+      dateRange: timeRange.start && timeRange.end ? { start: timeRange.start, end: timeRange.end } : undefined
+    };
+    exportToJSON(filteredLogs, options);
+  };
+
 
   return (
     <TooltipProvider delayDuration={1000}>
@@ -190,43 +215,7 @@ export default function LogToolbar(params: {
             </PopoverContent>
           </Popover>
 
-          {/* Local AI (Ollama) Help */}
-          <Popover open={ollamaDialogOpen} onOpenChange={setOllamaDialogOpen}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700"
-                  >
-                    Local AI
-                  </Button>
-                </PopoverTrigger>
-              </TooltipTrigger>
-              <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
-                <p>Run summaries with Ollama locally</p>
-              </TooltipContent>
-            </Tooltip>
-            <PopoverContent className="w-[520px] bg-gray-800 border border-gray-700 shadow-xl rounded-md p-4" align="end">
-              <div className="space-y-3">
-                <div className="text-sm text-gray-300 font-medium">Run a local LLM with Ollama (macOS)</div>
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">1) Install Ollama</div>
-                  <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">brew install ollama</pre>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">2) Start the server</div>
-                  <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama serve</pre>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">3) Pull a model (first time)</div>
-                  <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama pull llama3.1:8b</pre>
-                </div>
-                <div className="text-xs text-gray-500">Once running at http://localhost:11434, the app will use it automatically when no cloud key is set.</div>
-              </div>
-            </PopoverContent>
-          </Popover>
+
 
           {/* Sort Button */}
           <Tooltip>
@@ -287,6 +276,43 @@ export default function LogToolbar(params: {
             <Circle className={`w-2.5 h-2.5 ${llmAvailable === 'ollama' ? 'text-green-400' : 'text-red-500'}`} fill="currentColor" />
             <span className="text-gray-400">{llmAvailable === 'ollama' ? 'Local AI ready' : 'Local AI offline'}</span>
           </div>
+
+          {/* Export Dropdown */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
+                <p>Export filtered logs</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent className="w-48 bg-gray-800 border-gray-700">
+              <DropdownMenuLabel className="text-gray-200">Export Format</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-700" />
+              <DropdownMenuCheckboxItem
+                onClick={handleExportCSV}
+                className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700"
+              >
+                CSV
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                onClick={handleExportJSON}
+                className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700"
+              >
+                JSON
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* API Key UI removed */}
 

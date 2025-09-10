@@ -186,6 +186,8 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         searchInputRef={searchInputRef}
         onExplainIncident={handleExplainIncident}
         llmAvailable={llmAvailable}
+        allLogs={entries}
+        filteredLogs={filteredEntries}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0 bg-gray-900">
