@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { UploadCloud } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { type LogEntry, LogLevel } from '../../type/logs';
-import { parseLogText } from '../../Utils';
+import { type LogEntry, LogLevel } from '../../../types';
+import { parseLogText } from '../../../utils';
 
 export default function LogUploader({ onFileUpload }: { onFileUpload: (_:any) => void }) {
   const [isDragging, setIsDragging] = useState(false);

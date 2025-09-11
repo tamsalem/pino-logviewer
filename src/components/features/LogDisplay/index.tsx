@@ -1,23 +1,23 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import LogListView from '../LogListView';
-import LogToolbar from '../LogToolbar';
-import LogDashboard from '../Dashboard';
-import IncidentDrawer from '../IncidentDrawer';
-import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../analysis';
+import { LogListView, LogToolbar } from '../../ui';
+import { LogDashboard, IncidentDrawer } from '../';
+import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../../services';
 import { startOfDay, endOfDay } from 'date-fns';
-import { type LogEntry } from '../../type/logs';
+import { type LogEntry } from '../../../types';
+import { DEFAULT_FILTER_LEVELS, LLM_PROVIDERS, API_ENDPOINTS, SEARCH_DEBOUNCE_DELAY } from '../../../constants';
 
 export default function LogDisplay({ entries, fileName, onClear }: { entries: LogEntry[], fileName: string, onClear: (_:any) => void }) {
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
-  const [filterLevels, setFilterLevels] = useState<string[]>(['ERROR', 'WARN', 'INFO', 'DEBUG', 'NO_LEVEL']);
+  const [filterLevels, setFilterLevels] = useState<string[]>(DEFAULT_FILTER_LEVELS);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeRange, setTimeRange] = useState<{start?: Date; end?: Date}>({});
   const [sortOrder, setSortOrder] = useState('asc'); // 'desc' or 'asc'
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [incident, setIncident] = useState<IncidentAnalysis | null>(null);
-  const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>('none');
+  const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>(LLM_PROVIDERS.NONE);
   const [llmLoading, setLlmLoading] = useState(false);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const lastSummarizedFileRef = useRef<string | null>(null);
   const scrollContainerRef = useRef(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -31,17 +31,6 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         const entryLevel = entry.level || 'NO_LEVEL';
         return filterLevels.includes(entryLevel);
       });
-    }
-
-    // Search filter
-    if (searchQuery) {
-      try {
-        const regex = new RegExp(searchQuery, 'i');
-        filtered = filtered.filter(entry => regex.test(entry.raw));
-      } catch {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(entry => entry.raw.toLowerCase().includes(query));
-      }
     }
 
     // Time range filter
@@ -65,7 +54,37 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     });
 
     return filtered;
-  }, [entries, filterLevels, searchQuery, timeRange, sortOrder]);
+  }, [entries, filterLevels, timeRange, sortOrder]);
+
+  // Find search results and track their positions
+  const searchResults = useMemo(() => {
+    if (!searchQuery) return [];
+    
+    const results: { entryId: number; index: number }[] = [];
+    let globalIndex = 0;
+    
+    filteredEntries.forEach((entry, entryIndex) => {
+      try {
+        const regex = new RegExp(searchQuery, 'gi');
+        if (regex.test(entry.raw)) {
+          results.push({ entryId: entry.id, index: globalIndex });
+        }
+      } catch {
+        const query = searchQuery.toLowerCase();
+        if (entry.raw.toLowerCase().includes(query)) {
+          results.push({ entryId: entry.id, index: globalIndex });
+        }
+      }
+      globalIndex++;
+    });
+    
+    return results;
+  }, [filteredEntries, searchQuery]);
+
+  // Reset search index when search query changes
+  useEffect(() => {
+    setCurrentSearchIndex(0);
+  }, [searchQuery]);
 
   const searchPattern = useMemo(() => {
     if (!searchQuery) return null as RegExp | null;
@@ -102,17 +121,53 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     }
   }, [filteredEntries, selectedLogId]);
 
-  // Global shortcuts: Cmd/Ctrl+F focuses search; PageUp/PageDown scrolls to top/bottom
+  // Search navigation functions
+  const navigateToNextSearch = useCallback(() => {
+    if (searchResults.length === 0) return;
+    const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+    setCurrentSearchIndex(nextIndex);
+    const targetEntry = searchResults[nextIndex];
+    setSelectedLogId(targetEntry.entryId);
+  }, [searchResults, currentSearchIndex]);
+
+  const navigateToPreviousSearch = useCallback(() => {
+    if (searchResults.length === 0) return;
+    const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+    setCurrentSearchIndex(prevIndex);
+    const targetEntry = searchResults[prevIndex];
+    setSelectedLogId(targetEntry.entryId);
+  }, [searchResults, currentSearchIndex]);
+
+  // Global shortcuts: Cmd/Ctrl+F focuses search; F3/Shift+F3 for search navigation; Enter for next search; PageUp/PageDown scrolls to top/bottom
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      
       if (cmdOrCtrl && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
         searchInputRef.current?.focus();
         searchInputRef.current?.select?.();
         return;
       }
+      
+      if (e.key === 'F3') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          navigateToPreviousSearch();
+        } else {
+          navigateToNextSearch();
+        }
+        return;
+      }
+      
+      // Enter key moves to next search result (works globally when there's an active search)
+      if (e.key === 'Enter' && searchQuery && searchResults.length > 0) {
+        e.preventDefault();
+        navigateToNextSearch();
+        return;
+      }
+      
       if (e.key === 'PageUp') {
         e.preventDefault();
         const el: any = scrollContainerRef.current;
@@ -128,16 +183,16 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [navigateToNextSearch, navigateToPreviousSearch, searchQuery, searchResults]);
 
   // Check LLM availability (Ollama only)
   useEffect(() => {
     void (async () => {
       try {
         const res = await fetch('http://localhost:11434/api/tags')
-        setLlmAvailable(res.ok ? 'ollama' : 'none')
+        setLlmAvailable(res.ok ? LLM_PROVIDERS.OLLAMA : LLM_PROVIDERS.NONE)
       } catch {
-        setLlmAvailable('none')
+        setLlmAvailable(LLM_PROVIDERS.NONE)
       }
     })()
   }, [])
@@ -188,6 +243,10 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         llmAvailable={llmAvailable}
         allLogs={entries}
         filteredLogs={filteredEntries}
+        searchResults={searchResults}
+        currentSearchIndex={currentSearchIndex}
+        onNavigateToNextSearch={navigateToNextSearch}
+        onNavigateToPreviousSearch={navigateToPreviousSearch}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0 bg-gray-900">
@@ -199,6 +258,8 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
           scrollContainerRef={scrollContainerRef}
           isCompactView={false}
           searchPattern={searchPattern}
+          searchResults={searchResults}
+          currentSearchIndex={currentSearchIndex}
         />
       </div>
       <IncidentDrawer open={isIncidentOpen} onClose={() => setIsIncidentOpen(false)} analysis={incident} llmAvailable={llmAvailable} llmLoading={llmLoading} />

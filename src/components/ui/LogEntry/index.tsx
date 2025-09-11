@@ -1,15 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Copy, ExternalLink } from 'lucide-react';
-import { Button } from '../../../components/ui';
-import { LogLevel, type LogEntry as LogEntryType } from '../../type/logs';
+import { Button } from '../../../../components/ui';
+import { LogLevel, type LogEntry as LogEntryType } from '../../../types';
+import { LOG_LEVEL_COLORS } from '../../../constants';
 
-const levelColors = {
-  [LogLevel.ERROR]: 'bg-red-500/10 text-red-300 border-l-red-500', // error
-  [LogLevel.WARN]: 'bg-yellow-500/10 text-yellow-300 border-l-yellow-500', // warn
-  [LogLevel.INFO]: 'bg-blue-500/10 text-blue-300 border-l-blue-500', // info
-  [LogLevel.DEBUG]: 'bg-green-500/10 text-green-300 border-l-green-500', // debug
-};
+// Use level colors from constants
+const levelColors = LOG_LEVEL_COLORS;
 
 const JsonViewer = ({ data, searchPattern }: { data: unknown, searchPattern: RegExp | null }) => {
   const renderValue = (key:number | string | null, value:unknown, level = 0) => {
@@ -122,19 +119,28 @@ const highlightText = (text: string, pattern: RegExp | null) => {
   return <>{segments}</>;
 };
 
-export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern }: 
-    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null }) {
+export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern, hasSearchMatch, isCurrentSearchResult }: 
+    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null, hasSearchMatch?: boolean, isCurrentSearchResult?: boolean }) {
   const levelName = entry.level || 'NO_LEVEL';
   const levelColor = levelColors[levelName];
+
+  // Determine background color based on search state
+  const getBackgroundColor = () => {
+    if (isCurrentSearchResult) {
+      return 'bg-yellow-500/20 border-l-yellow-500'; // Current search result - bright yellow
+    } else if (hasSearchMatch) {
+      return 'bg-yellow-500/10 border-l-yellow-500/50'; // Has search match - subtle yellow
+    } else if (isSelected) {
+      return `${levelColor} bg-gray-800/50`; // Selected - original level color
+    } else {
+      return 'border-l-transparent hover:bg-gray-800/30'; // Default
+    }
+  };
 
   return (
     <div
       data-log-id={entry.id}
-      className={`border-l-4 transition-all duration-200 ${
-        isSelected 
-          ? `${levelColor} bg-gray-800/50` 
-          : 'border-l-transparent hover:bg-gray-800/30'
-      }`}
+      className={`border-l-4 transition-all duration-200 ${getBackgroundColor()}`}
     >
       <div className={`flex items-center px-4 cursor-pointer select-none ${isCompactView ? 'py-1' : 'py-2'}`} onClick={onClick}>
         <div className="flex items-center mr-3 text-gray-500">

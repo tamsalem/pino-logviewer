@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Input } from '../../../components/ui/input';
+import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Input } from '../../../../components/ui/input';
 import { 
   History, 
   Search, 
@@ -15,7 +15,7 @@ import {
   SortAsc,
   SortDesc
 } from 'lucide-react';
-import { electronAPI } from '../../lib/electron-api';
+import { electronAPI } from '../../../utils';
 
 interface HistoryEntry {
   id: string;

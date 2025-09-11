@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download } from 'lucide-react';
+import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -19,17 +19,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '../../../components/ui';
+} from '../../../../components/ui';
 import { Sparkles } from 'lucide-react';
-import { exportToCSV, exportToJSON, getFilteredLogs, type LogEntry, type ExportOptions } from '../../lib/export-utils';
-
-const levelOptions = [
-  { value: 'ERROR', label: 'Error', color: 'bg-red-500' },
-  { value: 'WARN', label: 'Warn', color: 'bg-yellow-500' },
-  { value: 'INFO', label: 'Info', color: 'bg-blue-500' },
-  { value: 'DEBUG', label: 'Debug', color: 'bg-gray-500' },
-  { value: 'NO_LEVEL', label: 'No Level', color: 'bg-white' },
-];
+import { exportToCSV, exportToJSON, getFilteredLogs, type LogEntry, type ExportOptions } from '../../../utils';
+import { LOG_LEVEL_OPTIONS, SEARCH_DEBOUNCE_DELAY } from '../../../constants';
 
 export default function LogToolbar(params: {
   fileName: string,
@@ -51,6 +44,10 @@ export default function LogToolbar(params: {
   llmAvailable?: 'none' | 'ollama',
   allLogs: LogEntry[],
   filteredLogs: LogEntry[],
+  searchResults?: { entryId: number; index: number }[],
+  currentSearchIndex?: number,
+  onNavigateToNextSearch?: () => void,
+  onNavigateToPreviousSearch?: () => void,
 }) {
   const {
     fileName,
@@ -72,6 +69,10 @@ export default function LogToolbar(params: {
     llmAvailable,
     allLogs,
     filteredLogs,
+    searchResults = [],
+    currentSearchIndex = 0,
+    onNavigateToNextSearch,
+    onNavigateToPreviousSearch,
   } = params
   const [inputValue, setInputValue] = useState(searchQuery);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -82,7 +83,7 @@ export default function LogToolbar(params: {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(inputValue);
-    }, 400); // delay
+    }, SEARCH_DEBOUNCE_DELAY);
 
     return () => {
       clearTimeout(timer);
@@ -146,22 +147,49 @@ export default function LogToolbar(params: {
                 placeholder="Search logs (supports regex)..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className="bg-gray-800 border-gray-700 pl-9 text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
+                className="bg-gray-800 border-gray-700 pl-9 pr-20 text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
                 ref={searchInputRef as any}
             />
+            {searchQuery && searchResults.length > 0 && (
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <span className="text-xs text-gray-400 px-2">
+                  {currentSearchIndex + 1} of {searchResults.length}
+                </span>
+                <div className="flex flex-col">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onNavigateToPreviousSearch}
+                    className="h-3 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                    disabled={searchResults.length === 0}
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onNavigateToNextSearch}
+                    className="h-3 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                    disabled={searchResults.length === 0}
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Level Filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700">
-                Level {filterLevels.length < levelOptions.length && `(${levelOptions.length - filterLevels.length} hidden)`}
+                Level {filterLevels.length < LOG_LEVEL_OPTIONS.length && `(${LOG_LEVEL_OPTIONS.length - filterLevels.length} hidden)`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700 text-gray-200">
               <DropdownMenuLabel>Filter by level</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-700" />
-              {levelOptions.map(opt => (
+              {LOG_LEVEL_OPTIONS.map(opt => (
                   <DropdownMenuCheckboxItem
                       key={opt.value}
                       checked={filterLevels.includes(opt.value)}

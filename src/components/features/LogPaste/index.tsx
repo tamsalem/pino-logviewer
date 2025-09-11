@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Clipboard } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '../../../components/ui';
-import { LogEntry, LogLevel } from '../../type/logs';
-import { parseLogText } from '../../Utils';
-import { electronAPI } from '../../lib/electron-api';
+import { Button } from '../../../../components/ui';
+import { LogEntry, LogLevel } from '../../../types';
+import { parseLogText } from '../../../utils';
+import { electronAPI } from '../../../utils';
 
 export default function LogPaste({ onLogsParsed }: { onLogsParsed: (_:any) => void }) {
     const [text, setText] = useState('');

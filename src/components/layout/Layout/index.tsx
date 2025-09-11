@@ -1,7 +1,7 @@
 import { Logs, Settings, History } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
+import { Button } from '../../../../components/ui/button';
 import { useState } from 'react';
-import { SettingsSidebar } from '../SettingsSidebar';
+import SettingsSidebar from '../SettingsSidebar';
 
 export default function Layout({ children, onFileUpload, onShowHistory }: { 
   children: any, 

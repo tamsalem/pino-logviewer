@@ -1,15 +1,12 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, BarChart3, Clock, Info } from 'lucide-react';
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
-import { LogEntry, LogLevel } from '../../type/logs';
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui';
+import { LogEntry, LogLevel } from '../../../types';
+import { LOG_LEVEL_COLORS } from '../../../constants';
 
-const levelColors = {
-    [LogLevel.ERROR]: 'bg-red-500/10 text-red-300 border-l-red-500', // error
-    [LogLevel.WARN]: 'bg-yellow-500/10 text-yellow-300 border-l-yellow-500', // warn
-    [LogLevel.INFO]: 'bg-blue-500/10 text-blue-300 border-l-blue-500', // info
-    [LogLevel.DEBUG]: 'bg-green-500/10 text-green-300 border-l-green-500', // debug
-};
+// Use level colors from constants
+const levelColors = LOG_LEVEL_COLORS;
 
 export default function LogDashboard({ entries }: { entries: LogEntry[] }) {
     const analytics = useMemo(() => {
