@@ -2,8 +2,8 @@ import { useEffect, useCallback } from 'react';
 import LogEntry from '../LogEntry';
 import { type LogEntry as LogEntryType } from '@/src/type/logs';
 
-export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern } :
-    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null }
+export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern, searchResults, currentSearchIndex } :
+    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null, searchResults?: { entryId: number; index: number }[], currentSearchIndex?: number }
 ) {
   // Handle keyboard navigation
   useEffect(() => {
@@ -68,17 +68,24 @@ export default function LogListView({ entries, selectedLogId, onSelectLog, onKey
       tabIndex={0}
     >
       <div className="bg-gray-900">
-        {entries.map((entry: LogEntryType) => (
-          <LogEntry
-            key={entry.id}
-            entry={entry}
-            isSelected={selectedLogId === entry.id}
-            isExpanded={selectedLogId === entry.id}
-            onClick={() => handleLogClick(entry.id)}
-            isCompactView={isCompactView}
-            searchPattern={searchPattern}
-          />
-        ))}
+        {entries.map((entry: LogEntryType) => {
+          const hasSearchMatch = searchResults?.some(result => result.entryId === entry.id) || false;
+          const isCurrentSearchResult = searchResults?.[currentSearchIndex || 0]?.entryId === entry.id;
+          
+          return (
+            <LogEntry
+              key={entry.id}
+              entry={entry}
+              isSelected={selectedLogId === entry.id}
+              isExpanded={selectedLogId === entry.id}
+              onClick={() => handleLogClick(entry.id)}
+              isCompactView={isCompactView}
+              searchPattern={searchPattern}
+              hasSearchMatch={hasSearchMatch}
+              isCurrentSearchResult={isCurrentSearchResult}
+            />
+          );
+        })}
       </div>
     </div>
   );

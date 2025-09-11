@@ -18,6 +18,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const [incident, setIncident] = useState<IncidentAnalysis | null>(null);
   const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>('none');
   const [llmLoading, setLlmLoading] = useState(false);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const lastSummarizedFileRef = useRef<string | null>(null);
   const scrollContainerRef = useRef(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -31,17 +32,6 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         const entryLevel = entry.level || 'NO_LEVEL';
         return filterLevels.includes(entryLevel);
       });
-    }
-
-    // Search filter
-    if (searchQuery) {
-      try {
-        const regex = new RegExp(searchQuery, 'i');
-        filtered = filtered.filter(entry => regex.test(entry.raw));
-      } catch {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(entry => entry.raw.toLowerCase().includes(query));
-      }
     }
 
     // Time range filter
@@ -65,7 +55,37 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     });
 
     return filtered;
-  }, [entries, filterLevels, searchQuery, timeRange, sortOrder]);
+  }, [entries, filterLevels, timeRange, sortOrder]);
+
+  // Find search results and track their positions
+  const searchResults = useMemo(() => {
+    if (!searchQuery) return [];
+    
+    const results: { entryId: number; index: number }[] = [];
+    let globalIndex = 0;
+    
+    filteredEntries.forEach((entry, entryIndex) => {
+      try {
+        const regex = new RegExp(searchQuery, 'gi');
+        if (regex.test(entry.raw)) {
+          results.push({ entryId: entry.id, index: globalIndex });
+        }
+      } catch {
+        const query = searchQuery.toLowerCase();
+        if (entry.raw.toLowerCase().includes(query)) {
+          results.push({ entryId: entry.id, index: globalIndex });
+        }
+      }
+      globalIndex++;
+    });
+    
+    return results;
+  }, [filteredEntries, searchQuery]);
+
+  // Reset search index when search query changes
+  useEffect(() => {
+    setCurrentSearchIndex(0);
+  }, [searchQuery]);
 
   const searchPattern = useMemo(() => {
     if (!searchQuery) return null as RegExp | null;
@@ -102,17 +122,53 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     }
   }, [filteredEntries, selectedLogId]);
 
-  // Global shortcuts: Cmd/Ctrl+F focuses search; PageUp/PageDown scrolls to top/bottom
+  // Search navigation functions
+  const navigateToNextSearch = useCallback(() => {
+    if (searchResults.length === 0) return;
+    const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+    setCurrentSearchIndex(nextIndex);
+    const targetEntry = searchResults[nextIndex];
+    setSelectedLogId(targetEntry.entryId);
+  }, [searchResults, currentSearchIndex]);
+
+  const navigateToPreviousSearch = useCallback(() => {
+    if (searchResults.length === 0) return;
+    const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+    setCurrentSearchIndex(prevIndex);
+    const targetEntry = searchResults[prevIndex];
+    setSelectedLogId(targetEntry.entryId);
+  }, [searchResults, currentSearchIndex]);
+
+  // Global shortcuts: Cmd/Ctrl+F focuses search; F3/Shift+F3 for search navigation; Enter for next search; PageUp/PageDown scrolls to top/bottom
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      
       if (cmdOrCtrl && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
         searchInputRef.current?.focus();
         searchInputRef.current?.select?.();
         return;
       }
+      
+      if (e.key === 'F3') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          navigateToPreviousSearch();
+        } else {
+          navigateToNextSearch();
+        }
+        return;
+      }
+      
+      // Enter key moves to next search result (works globally when there's an active search)
+      if (e.key === 'Enter' && searchQuery && searchResults.length > 0) {
+        e.preventDefault();
+        navigateToNextSearch();
+        return;
+      }
+      
       if (e.key === 'PageUp') {
         e.preventDefault();
         const el: any = scrollContainerRef.current;
@@ -128,7 +184,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [navigateToNextSearch, navigateToPreviousSearch, searchQuery, searchResults]);
 
   // Check LLM availability (Ollama only)
   useEffect(() => {
@@ -188,6 +244,10 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         llmAvailable={llmAvailable}
         allLogs={entries}
         filteredLogs={filteredEntries}
+        searchResults={searchResults}
+        currentSearchIndex={currentSearchIndex}
+        onNavigateToNextSearch={navigateToNextSearch}
+        onNavigateToPreviousSearch={navigateToPreviousSearch}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0 bg-gray-900">
@@ -199,6 +259,8 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
           scrollContainerRef={scrollContainerRef}
           isCompactView={false}
           searchPattern={searchPattern}
+          searchResults={searchResults}
+          currentSearchIndex={currentSearchIndex}
         />
       </div>
       <IncidentDrawer open={isIncidentOpen} onClose={() => setIsIncidentOpen(false)} analysis={incident} llmAvailable={llmAvailable} llmLoading={llmLoading} />

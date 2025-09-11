@@ -122,19 +122,28 @@ const highlightText = (text: string, pattern: RegExp | null) => {
   return <>{segments}</>;
 };
 
-export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern }: 
-    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null }) {
+export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern, hasSearchMatch, isCurrentSearchResult }: 
+    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null, hasSearchMatch?: boolean, isCurrentSearchResult?: boolean }) {
   const levelName = entry.level || 'NO_LEVEL';
   const levelColor = levelColors[levelName];
+
+  // Determine background color based on search state
+  const getBackgroundColor = () => {
+    if (isCurrentSearchResult) {
+      return 'bg-yellow-500/20 border-l-yellow-500'; // Current search result - bright yellow
+    } else if (hasSearchMatch) {
+      return 'bg-yellow-500/10 border-l-yellow-500/50'; // Has search match - subtle yellow
+    } else if (isSelected) {
+      return `${levelColor} bg-gray-800/50`; // Selected - original level color
+    } else {
+      return 'border-l-transparent hover:bg-gray-800/30'; // Default
+    }
+  };
 
   return (
     <div
       data-log-id={entry.id}
-      className={`border-l-4 transition-all duration-200 ${
-        isSelected 
-          ? `${levelColor} bg-gray-800/50` 
-          : 'border-l-transparent hover:bg-gray-800/30'
-      }`}
+      className={`border-l-4 transition-all duration-200 ${getBackgroundColor()}`}
     >
       <div className={`flex items-center px-4 cursor-pointer select-none ${isCompactView ? 'py-1' : 'py-2'}`} onClick={onClick}>
         <div className="flex items-center mr-3 text-gray-500">
