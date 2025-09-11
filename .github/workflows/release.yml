@@ -64,13 +64,18 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
-          # Update package.json version to match tag
-          npm version $VERSION --no-git-tag-version
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add package.json package-lock.json
-          git commit -m "chore: update version to $VERSION" || true
-          # Skipping pushing branch to avoid branch protection issues
+          # Update package.json version to match tag (only if different)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [ "$CURRENT_VERSION" != "$VERSION" ]; then
+            npm version $VERSION --no-git-tag-version
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add package.json package-lock.json
+            git commit -m "chore: update version to $VERSION" || true
+            # Skipping pushing branch to avoid branch protection issues
+          else
+            echo "Version already matches tag: $VERSION"
+          fi
 
       - name: Build application
         run: |
