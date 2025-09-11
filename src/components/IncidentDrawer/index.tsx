@@ -66,8 +66,8 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
   return (
     <div className="fixed inset-0 z-40">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full bg-gray-900 border-l-2 border-gray-700 shadow-2xl p-5 overflow-auto" style={{ width }}>
-        <div ref={dragRef} className="absolute left-0 top-0 h-full w-2 cursor-col-resize bg-gray-700/40 hover:bg-gray-600/60" />
+      <div className="absolute right-0 top-0 h-full bg-gray-900 border-l border-gray-700 shadow-2xl p-5 overflow-auto" style={{ width }}>
+        <div ref={dragRef} className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-gray-600/40 z-50" />
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-200">Incident Explainer</h2>
           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white" onClick={onClose}>Close</Button>
@@ -130,6 +130,27 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
                 <div className="mt-1 text-gray-200 prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeLLMHtml(a.llmSummary) }} />
               </div>
             )}
+            <div>
+              <div className="text-sm text-gray-400 mb-2">Error Categories</div>
+              <div className="space-y-2">
+                {a.categories.slice(0, 5).map((cat, i) => (
+                  <div key={i} className="bg-gray-800/60 border border-gray-700 rounded p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-sm font-medium ${
+                        cat.category.priority <= 3 ? 'text-red-300' :
+                        cat.category.priority <= 6 ? 'text-yellow-300' :
+                        'text-gray-300'
+                      }`}>
+                        {cat.category.name}
+                      </span>
+                      <span className="text-xs text-gray-400">{cat.count} ({cat.percentage}%)</span>
+                    </div>
+                    <div className="text-xs text-gray-500">{cat.category.description}</div>
+                  </div>
+                ))}
+                {a.categories.length === 0 && <div className="text-gray-500 text-sm">No categories detected</div>}
+              </div>
+            </div>
             <div>
               <div className="text-sm text-gray-400">Timeline</div>
               <div className="mt-2 h-16 flex items-end gap-1">

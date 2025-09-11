@@ -24,6 +24,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onFileOpened: (callback: (data: { path: string; content: string }) => void) => {
         ipcRenderer.on('open-file', (_, data) => callback(data));
     },
+    // Settings API
+    getSettings: () => ipcRenderer.invoke('get-settings'),
+    setSettings: (settings: any) => ipcRenderer.invoke('set-settings', settings),
+    // History API
+    saveHistory: (logs: any[]) => ipcRenderer.invoke('save-history', logs),
+    getHistory: () => ipcRenderer.invoke('get-history'),
+    loadHistoryEntry: (id: string) => ipcRenderer.invoke('load-history-entry', id),
+    clearHistory: () => ipcRenderer.invoke('clear-history'),
 });
 
 // --------- Preload scripts loading ---------

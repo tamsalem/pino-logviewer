@@ -1,91 +1,417 @@
-# electron-vite-react
+# Pino Log Viewer
 
-[![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite)
-![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/vite-react-electron?color=fa6470)
-![GitHub issues](https://img.shields.io/github/issues/caoxiemeihao/vite-react-electron?color=d8b22d)
-![GitHub license](https://img.shields.io/github/license/caoxiemeihao/vite-react-electron)
-[![Required Node.JS >= 14.18.0 || >=16.0.0](https://img.shields.io/static/v1?label=node&message=14.18.0%20||%20%3E=16.0.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
+A powerful desktop application for analyzing and visualizing Pino log files with AI-powered incident detection and analysis.
 
-English | [简体中文](README.zh-CN.md)
+![Pino Log Viewer](https://img.shields.io/badge/Electron-Desktop%20App-blue)
+![React](https://img.shields.io/badge/React-18+-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178c6)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## 👀 Overview
+## 🚀 Features
 
-📦 Ready out of the box  
-🎯 Based on the official [template-react-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts), project structure will be familiar to you  
-🌱 Easily extendable and customizable  
-💪 Supports Node.js API in the renderer process  
-🔩 Supports C/C++ native addons  
-🐞 Debugger configuration included  
-🖥 Easy to implement multiple windows  
+- **📁 File Support**: Drag & drop Pino log files (.log, .txt)
+- **📋 Paste Support**: Paste raw log text directly
+- **🔍 Advanced Search**: Real-time search with highlighting
+- **⌨️ Keyboard Shortcuts**: Cmd/Ctrl+F for search, Page Up/Down for navigation
+- **🤖 AI Incident Analysis**: Local LLM-powered incident detection and root cause analysis
+- **📊 Error Categorization**: Automatic classification of errors (Database, Network, Auth, etc.)
+- **📈 Spike Detection**: Identify error bursts and performance anomalies
+- **💾 History Management**: Save and manage pasted log entries
+- **⚙️ Settings**: Configurable retention periods and LLM setup
+- **🎨 Modern UI**: Dark theme with responsive design
 
-## 🛫 Quick Setup
+## 📋 Table of Contents
 
-```sh
-# clone the project
-git clone https://github.com/electron-vite/electron-vite-react.git
+- [For Users](#for-users)
+  - [Installation](#installation)
+  - [Getting Started](#getting-started)
+  - [Features Guide](#features-guide)
+  - [AI Analysis Setup](#ai-analysis-setup)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Troubleshooting](#troubleshooting)
+- [For Developers](#for-developers)
+  - [Prerequisites](#prerequisites)
+  - [Development Setup](#development-setup)
+  - [Project Structure](#project-structure)
+  - [Architecture](#architecture)
+  - [Contributing](#contributing)
+  - [Building](#building)
 
-# enter the project directory
-cd electron-vite-react
+---
 
-# install dependency
-npm install
+## For Users
 
-# develop
+### Installation
+
+#### Option 1: Download Pre-built Binary
+1. Go to the [Releases](https://github.com/your-username/pino-logviewer/releases) page
+2. Download the installer for your operating system
+3. Run the installer and follow the setup wizard
+
+#### Option 2: Build from Source
+See the [For Developers](#for-developers) section for build instructions.
+
+### Getting Started
+
+1. **Launch the Application**
+   - Open Pino Log Viewer from your applications folder
+   - You'll see the welcome screen with options to load logs
+
+2. **Load Log Files**
+   - **Drag & Drop**: Drag a `.log` or `.txt` file onto the welcome screen
+   - **Paste Text**: Click "Paste Raw Logs" and paste your log content
+   - **File Menu**: Use File → Open to browse for log files
+
+3. **Analyze Your Logs**
+   - Use the search bar to find specific entries
+   - Click on any log entry to see detailed information
+   - Use the "Explain" button for AI-powered incident analysis
+
+### Features Guide
+
+#### 🔍 Search and Navigation
+- **Search**: Type in the search bar to filter logs in real-time
+- **Highlighting**: Search terms are highlighted in yellow
+- **Keyboard Shortcuts**:
+  - `Cmd/Ctrl + F`: Focus search input
+  - `Page Up`: Jump to top of logs
+  - `Page Down`: Jump to bottom of logs
+
+#### 🤖 AI Incident Analysis
+The app can automatically detect and analyze incidents in your logs:
+
+- **Spike Detection**: Identifies sudden increases in error rates
+- **Error Categorization**: Classifies errors into categories like:
+  - Database issues (highest priority)
+  - Authentication failures
+  - Network problems
+  - External API failures
+  - And 16+ other categories
+- **Root Cause Analysis**: Provides human-readable incident summaries
+- **Timeline**: Shows when incidents occurred and their duration
+
+#### 💾 History Management
+- **Automatic Saving**: Pasted logs are automatically saved to history
+- **Configurable Retention**: Set how long to keep history (1-365 days)
+- **Quick Access**: Load previous log analyses from the settings panel
+
+### AI Analysis Setup
+
+To enable AI-powered incident analysis, you need to set up a local LLM using Ollama:
+
+#### 1. Install Ollama
+```bash
+# macOS
+brew install ollama
+
+# Linux
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Windows
+# Download from https://ollama.ai/download
+```
+
+#### 2. Pull a Model
+```bash
+# Recommended model (good balance of speed and quality)
+ollama pull llama3.1:8b
+
+# Alternative models
+ollama pull llama3.1:70b  # Higher quality, slower
+ollama pull codellama:7b  # Code-focused model
+```
+
+#### 3. Start Ollama
+```bash
+ollama serve
+```
+
+#### 4. Verify Setup
+- Open Pino Log Viewer
+- Go to Settings (gear icon on welcome screen)
+- Check the "Local AI (Ollama) Setup" section
+- You should see a green indicator if Ollama is running
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + F` | Focus search input |
+| `Page Up` | Jump to top of logs |
+| `Page Down` | Jump to bottom of logs |
+| `Escape` | Clear search / Close dialogs |
+| `Enter` | Confirm actions in dialogs |
+
+### Troubleshooting
+
+#### Common Issues
+
+**Q: AI analysis shows "No local LLM detected"**
+- Make sure Ollama is installed and running (`ollama serve`)
+- Check that you've pulled a model (`ollama pull llama3.1:8b`)
+- Verify the model is available (`ollama list`)
+
+**Q: App won't start or crashes**
+- Check that you have Node.js 18+ installed
+- Try deleting the app and reinstalling
+- Check the console for error messages
+
+**Q: Log files won't load**
+- Ensure the file is a valid Pino log format
+- Check file permissions
+- Try copying the content and pasting it instead
+
+**Q: Search not working**
+- Make sure you're typing in the search box
+- Try clearing the search and typing again
+- Check that the log file loaded successfully
+
+#### Getting Help
+- Check the [Issues](https://github.com/your-username/pino-logviewer/issues) page
+- Create a new issue with:
+  - Your operating system
+  - App version
+  - Steps to reproduce the problem
+  - Any error messages
+
+---
+
+## For Developers
+
+### Prerequisites
+
+- **Node.js**: 18.0.0 or higher
+- **npm**: 8.0.0 or higher
+- **Git**: For version control
+
+### Development Setup
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-username/pino-logviewer.git
+   cd pino-logviewer
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for Production**
+   ```bash
+   npm run build
+   ```
+
+### Project Structure
+
+```
+pino-logviewer/
+├── electron/                    # Electron main process
+│   ├── main/                   # Main process code
+│   │   └── index.ts           # App initialization, IPC handlers
+│   └── preload/               # Preload scripts
+│       └── index.ts           # Secure API exposure
+├── src/                       # React renderer process
+│   ├── components/            # React components
+│   │   ├── LogDisplay/        # Main log display component
+│   │   ├── LogListView/       # Log list with search
+│   │   ├── LogEntry/          # Individual log entry
+│   │   ├── LogToolbar/        # Toolbar with controls
+│   │   ├── IncidentDrawer/    # AI analysis drawer
+│   │   ├── SettingsSidebar/   # Settings panel
+│   │   ├── WelcomeScreen/     # Landing page
+│   │   └── LogPaste/          # Paste functionality
+│   ├── analysis/              # Log analysis logic
+│   │   └── index.ts           # Incident detection, LLM integration
+│   ├── lib/                   # Utilities and APIs
+│   │   └── electron-api.ts    # Electron API wrapper
+│   └── App.tsx                # Main React component
+├── public/                    # Static assets
+├── dist/                      # Built renderer
+├── dist-electron/             # Built main process
+└── release/                   # Packaged applications
+```
+
+### Architecture
+
+#### Main Process (`electron/main/`)
+- **Window Management**: Creates and manages the main window
+- **File Operations**: Handles file opening and reading
+- **IPC Handlers**: Secure communication with renderer
+- **Settings Storage**: Manages user preferences and history
+- **LLM Integration**: Communicates with local Ollama instance
+
+#### Renderer Process (`src/`)
+- **React Components**: Modern UI with TypeScript
+- **State Management**: React hooks for local state
+- **Log Parsing**: Pino log format parsing
+- **Search & Filtering**: Real-time log filtering
+- **AI Analysis**: Incident detection and categorization
+
+#### Key Technologies
+- **Electron**: Cross-platform desktop framework
+- **React 18**: UI framework with hooks
+- **TypeScript**: Type-safe development
+- **Vite**: Fast build tool and dev server
+- **Tailwind CSS**: Utility-first styling
+- **Radix UI**: Accessible component primitives
+- **Framer Motion**: Smooth animations
+
+### Contributing
+
+#### Development Workflow
+
+1. **Fork the Repository**
+   ```bash
+   git fork https://github.com/your-username/pino-logviewer.git
+   ```
+
+2. **Create a Feature Branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+3. **Make Changes**
+   - Follow the existing code style
+   - Add TypeScript types for new features
+   - Update tests if applicable
+   - Update documentation
+
+4. **Test Your Changes**
+   ```bash
+   npm run dev          # Test in development
+   npm run build        # Test production build
+   npm test             # Run tests
+   ```
+
+5. **Submit a Pull Request**
+   - Provide a clear description
+   - Include screenshots for UI changes
+   - Reference any related issues
+
+#### Code Style Guidelines
+
+- **TypeScript**: Use strict typing, avoid `any`
+- **React**: Use functional components with hooks
+- **Styling**: Use Tailwind CSS classes
+- **Naming**: Use descriptive, camelCase names
+- **Comments**: Document complex logic
+- **Error Handling**: Always handle errors gracefully
+
+#### Testing
+
+```bash
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
+npm test
+
+# Preview production build
+npm run preview
+```
+
+### Building
+
+#### Development Build
+```bash
 npm run dev
 ```
 
-## 🐞 Debug
-
-![electron-vite-react-debug.gif](/electron-vite-react-debug.gif)
-
-## 📂 Directory structure
-
-Familiar React application structure, just with `electron` folder on the top :wink:  
-*Files in this folder will be separated from your React application and built into `dist-electron`*  
-
-```tree
-├── electron                                 Electron-related code
-│   ├── main                                 Main-process source code
-│   └── preload                              Preload-scripts source code
-│
-├── release                                  Generated after production build, contains executables
-│   └── {version}
-│       ├── {os}-{os_arch}                   Contains unpacked application executable
-│       └── {app_name}_{version}.{ext}       Installer for the application
-│
-├── public                                   Static assets
-└── src                                      Renderer source code, your React application
+#### Production Build
+```bash
+npm run build
 ```
 
-<!--
-## 🚨 Be aware
-
-This template integrates Node.js API to the renderer process by default. If you want to follow **Electron Security Concerns** you might want to disable this feature. You will have to expose needed API by yourself.  
-
-To get started, remove the option as shown below. This will [modify the Vite configuration and disable this feature](https://github.com/electron-vite/vite-plugin-electron-renderer#config-presets-opinionated).
-
-```diff
-# vite.config.ts
-
-export default {
-  plugins: [
-    ...
--   // Use Node.js API in the Renderer-process
--   renderer({
--     nodeIntegration: true,
--   }),
-    ...
-  ],
-}
+#### Package for Distribution
+```bash
+npm run build        # Builds and packages for macOS (current platform)
+npm run debug-build  # Builds with debug logging
 ```
--->
 
-## 🔧 Additional features
+#### Build Output
+- **Development**: `dist/` and `dist-electron/`
+- **Production**: `release/` with platform-specific installers
 
-1. electron-updater 👉 [see docs](src/components/update/README.md)
-1. playwright
+### Environment Variables
 
-## ❔ FAQ
+Create a `.env` file for development:
 
-- [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
-- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
+```env
+# Development settings
+NODE_ENV=development
+ELECTRON_IS_DEV=true
+
+# LLM settings (optional)
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=llama3.1:8b
+```
+
+### Debugging
+
+#### Main Process Debugging
+- Use VS Code debugger configuration
+- Add breakpoints in `electron/main/index.ts`
+- Check console output in terminal
+
+#### Renderer Process Debugging
+- Use Chrome DevTools (Cmd/Ctrl+Shift+I)
+- React Developer Tools extension
+- Network tab for API calls
+
+#### Common Debug Commands
+```bash
+# Check Electron version
+npx electron --version
+
+# Check Node.js version
+node --version
+
+# Check npm version
+npm --version
+
+# Clear npm cache
+npm cache clean --force
+```
+
+### Performance Considerations
+
+- **Large Log Files**: The app handles files up to 100MB efficiently
+- **Memory Usage**: Logs are processed in chunks to prevent memory issues
+- **Search Performance**: Debounced search with virtual scrolling
+- **LLM Responses**: Cached to prevent re-generation
+
+### Security
+
+- **IPC Security**: All main process communication is secured
+- **File Access**: Limited to user-selected files
+- **LLM Integration**: Local-only, no external API calls
+- **Data Storage**: Settings and history stored locally
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-username/pino-logviewer/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/pino-logviewer/discussions)
+- **Email**: tamsalem@paloaltonetworks.com
+
+---
+
+Made with ❤️ for the developer community

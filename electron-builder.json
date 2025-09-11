@@ -11,6 +11,10 @@
   ],
   "mac": {
     "category": "public.app-category.developer-tools",
+    "hardenedRuntime": true,
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.inherit.plist",
+    "gatekeeperAssess": false,
     "fileAssociations": [
       {
         "ext": "log",

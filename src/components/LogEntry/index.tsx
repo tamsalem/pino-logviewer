@@ -124,7 +124,7 @@ const highlightText = (text: string, pattern: RegExp | null) => {
 
 export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern }: 
     { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null }) {
-  const levelName = entry.level || LogLevel.INFO;
+  const levelName = entry.level || 'NO_LEVEL';
   const levelColor = levelColors[levelName];
 
   return (
@@ -147,10 +147,11 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
         
         <div className="flex items-center gap-4 flex-grow min-w-0">
           <span className={`px-2 py-1 text-xs font-bold rounded flex-shrink-0 ${
-            entry.level === LogLevel.ERROR ? 'bg-red-500/20 text-red-300' :
-            entry.level === LogLevel.WARN ? 'bg-yellow-500/20 text-yellow-300' :
-            entry.level === LogLevel.INFO ? 'bg-blue-500/20 text-blue-300' :
-            'bg-gray-500/20 text-gray-400'
+            levelName === 'ERROR' ? 'bg-red-500/20 text-red-300' :
+            levelName === 'WARN' ? 'bg-yellow-500/20 text-yellow-300' :
+            levelName === 'INFO' ? 'bg-blue-500/20 text-blue-300' :
+            levelName === 'DEBUG' ? 'bg-gray-500/20 text-gray-400' :
+            'bg-white/20 text-white'
           }`}>
             {levelName}
           </span>
