@@ -1,0 +1,40 @@
+name: Release - Build & Publish on Tag
+
+on:
+  push:
+    tags:
+      - 'v*'   # runs ONLY when a tag like v1.2.3 is pushed
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build_and_publish:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout at tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Show tag
+        run: |
+          echo "Building for tag: ${GITHUB_REF_NAME}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Build and publish (macOS)
+        run: |
+          npm run build
+          npx electron-builder --mac --publish=always
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
