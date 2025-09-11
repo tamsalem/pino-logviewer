@@ -1,12 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import LogDisplay from './components/LogDisplay';
-import WelcomeScreen from './components/WelcomeScreen';
-import HistoryScreen from './components/HistoryScreen';
-import Layout from './components/Layout';
-import { LogEntry } from './type/logs';
-import { parseLogText } from './Utils';
+import { LogDisplay, WelcomeScreen, HistoryScreen, Layout } from './components';
+import { LogEntry } from './types';
+import { parseLogText } from './utils';
 import './App.css'
 
 export default function LogViewerPage() {

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
+import { Button } from '../../../../components/ui/button';
+import { Input } from '../../../../components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover';
 import { Copy, Check, Settings, Clock } from 'lucide-react';
-import { electronAPI } from '../../lib/electron-api';
+import { electronAPI } from '../../../utils';
 
 interface SettingsSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProps) {
+export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProps) {
   const [retentionDays, setRetentionDays] = useState(7);
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
@@ -223,3 +223,4 @@ export function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProps) {
     </div>
   );
 }
+

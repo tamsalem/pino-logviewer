@@ -1,4 +1,4 @@
-import { LogEntry, LogLevel } from './type/logs';
+import { LogEntry, LogLevel } from '../types/logs';
 export const parseLogText = (content: string): LogEntry[] => {
     const out: LogEntry[] = [];
     const lines = content.split(/\r?\n/);

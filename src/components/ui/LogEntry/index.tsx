@@ -1,15 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Copy, ExternalLink } from 'lucide-react';
-import { Button } from '../../../components/ui';
-import { LogLevel, type LogEntry as LogEntryType } from '../../type/logs';
+import { Button } from '../../../../components/ui';
+import { LogLevel, type LogEntry as LogEntryType } from '../../../types';
+import { LOG_LEVEL_COLORS } from '../../../constants';
 
-const levelColors = {
-  [LogLevel.ERROR]: 'bg-red-500/10 text-red-300 border-l-red-500', // error
-  [LogLevel.WARN]: 'bg-yellow-500/10 text-yellow-300 border-l-yellow-500', // warn
-  [LogLevel.INFO]: 'bg-blue-500/10 text-blue-300 border-l-blue-500', // info
-  [LogLevel.DEBUG]: 'bg-green-500/10 text-green-300 border-l-green-500', // debug
-};
+// Use level colors from constants
+const levelColors = LOG_LEVEL_COLORS;
 
 const JsonViewer = ({ data, searchPattern }: { data: unknown, searchPattern: RegExp | null }) => {
   const renderValue = (key:number | string | null, value:unknown, level = 0) => {

@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import LogEntry from '../LogEntry';
-import { type LogEntry as LogEntryType } from '@/src/type/logs';
+import { type LogEntry as LogEntryType } from '../../../types';
 
 export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern, searchResults, currentSearchIndex } :
     { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null, searchResults?: { entryId: number; index: number }[], currentSearchIndex?: number }

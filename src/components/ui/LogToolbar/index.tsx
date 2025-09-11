@@ -19,17 +19,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '../../../components/ui';
+} from '../../../../components/ui';
 import { Sparkles } from 'lucide-react';
-import { exportToCSV, exportToJSON, getFilteredLogs, type LogEntry, type ExportOptions } from '../../lib/export-utils';
-
-const levelOptions = [
-  { value: 'ERROR', label: 'Error', color: 'bg-red-500' },
-  { value: 'WARN', label: 'Warn', color: 'bg-yellow-500' },
-  { value: 'INFO', label: 'Info', color: 'bg-blue-500' },
-  { value: 'DEBUG', label: 'Debug', color: 'bg-gray-500' },
-  { value: 'NO_LEVEL', label: 'No Level', color: 'bg-white' },
-];
+import { exportToCSV, exportToJSON, getFilteredLogs, type LogEntry, type ExportOptions } from '../../../utils';
+import { LOG_LEVEL_OPTIONS, SEARCH_DEBOUNCE_DELAY } from '../../../constants';
 
 export default function LogToolbar(params: {
   fileName: string,
@@ -90,7 +83,7 @@ export default function LogToolbar(params: {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(inputValue);
-    }, 400); // delay
+    }, SEARCH_DEBOUNCE_DELAY);
 
     return () => {
       clearTimeout(timer);
@@ -190,13 +183,13 @@ export default function LogToolbar(params: {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700">
-                Level {filterLevels.length < levelOptions.length && `(${levelOptions.length - filterLevels.length} hidden)`}
+                Level {filterLevels.length < LOG_LEVEL_OPTIONS.length && `(${LOG_LEVEL_OPTIONS.length - filterLevels.length} hidden)`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700 text-gray-200">
               <DropdownMenuLabel>Filter by level</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-700" />
-              {levelOptions.map(opt => (
+              {LOG_LEVEL_OPTIONS.map(opt => (
                   <DropdownMenuCheckboxItem
                       key={opt.value}
                       checked={filterLevels.includes(opt.value)}

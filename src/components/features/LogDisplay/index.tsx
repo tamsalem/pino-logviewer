@@ -1,22 +1,21 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import LogListView from '../LogListView';
-import LogToolbar from '../LogToolbar';
-import LogDashboard from '../Dashboard';
-import IncidentDrawer from '../IncidentDrawer';
-import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../analysis';
+import { LogListView, LogToolbar } from '../../ui';
+import { LogDashboard, IncidentDrawer } from '../';
+import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../../services';
 import { startOfDay, endOfDay } from 'date-fns';
-import { type LogEntry } from '../../type/logs';
+import { type LogEntry } from '../../../types';
+import { DEFAULT_FILTER_LEVELS, LLM_PROVIDERS, API_ENDPOINTS, SEARCH_DEBOUNCE_DELAY } from '../../../constants';
 
 export default function LogDisplay({ entries, fileName, onClear }: { entries: LogEntry[], fileName: string, onClear: (_:any) => void }) {
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
-  const [filterLevels, setFilterLevels] = useState<string[]>(['ERROR', 'WARN', 'INFO', 'DEBUG', 'NO_LEVEL']);
+  const [filterLevels, setFilterLevels] = useState<string[]>(DEFAULT_FILTER_LEVELS);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeRange, setTimeRange] = useState<{start?: Date; end?: Date}>({});
   const [sortOrder, setSortOrder] = useState('asc'); // 'desc' or 'asc'
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [incident, setIncident] = useState<IncidentAnalysis | null>(null);
-  const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>('none');
+  const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>(LLM_PROVIDERS.NONE);
   const [llmLoading, setLlmLoading] = useState(false);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const lastSummarizedFileRef = useRef<string | null>(null);
@@ -191,9 +190,9 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     void (async () => {
       try {
         const res = await fetch('http://localhost:11434/api/tags')
-        setLlmAvailable(res.ok ? 'ollama' : 'none')
+        setLlmAvailable(res.ok ? LLM_PROVIDERS.OLLAMA : LLM_PROVIDERS.NONE)
       } catch {
-        setLlmAvailable('none')
+        setLlmAvailable(LLM_PROVIDERS.NONE)
       }
     })()
   }, [])

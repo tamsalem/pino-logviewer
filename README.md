@@ -95,6 +95,14 @@ The app can automatically detect and analyze incidents in your logs:
 - **Configurable Retention**: Set how long to keep history (1-365 days)
 - **Quick Access**: Load previous log analyses from the settings panel
 
+#### 🔍 Browser-like Search
+- **Highlighting**: Search terms are highlighted in yellow within log entries
+- **Position Indicator**: Shows current position (e.g., "1 of 5 matches")
+- **Navigation**: Use Enter, F3, or Shift+F3 to navigate between results
+- **Global Search**: Works from anywhere in the interface
+- **Regex Support**: Supports regular expressions for advanced searching
+- **Real-time**: Search results update as you type
+
 ### AI Analysis Setup
 
 To enable AI-powered incident analysis, you need to set up a local LLM using Ollama:
@@ -137,10 +145,12 @@ ollama serve
 | Shortcut | Action |
 |----------|--------|
 | `Cmd/Ctrl + F` | Focus search input |
+| `Enter` | Navigate to next search result (when search is active) |
+| `F3` | Navigate to next search result |
+| `Shift + F3` | Navigate to previous search result |
 | `Page Up` | Jump to top of logs |
 | `Page Down` | Jump to bottom of logs |
 | `Escape` | Clear search / Close dialogs |
-| `Enter` | Confirm actions in dialogs |
 
 ### Troubleshooting
 
@@ -217,20 +227,45 @@ pino-logviewer/
 │   └── preload/               # Preload scripts
 │       └── index.ts           # Secure API exposure
 ├── src/                       # React renderer process
-│   ├── components/            # React components
-│   │   ├── LogDisplay/        # Main log display component
-│   │   ├── LogListView/       # Log list with search
-│   │   ├── LogEntry/          # Individual log entry
-│   │   ├── LogToolbar/        # Toolbar with controls
-│   │   ├── IncidentDrawer/    # AI analysis drawer
-│   │   ├── SettingsSidebar/   # Settings panel
-│   │   ├── WelcomeScreen/     # Landing page
-│   │   └── LogPaste/          # Paste functionality
-│   ├── analysis/              # Log analysis logic
-│   │   └── index.ts           # Incident detection, LLM integration
-│   ├── lib/                   # Utilities and APIs
-│   │   └── electron-api.ts    # Electron API wrapper
-│   └── App.tsx                # Main React component
+│   ├── components/            # React components (organized by purpose)
+│   │   ├── ui/                # Reusable UI components
+│   │   │   ├── LogEntry/      # Individual log entry component
+│   │   │   ├── LogListView/   # Log list with search functionality
+│   │   │   └── LogToolbar/    # Toolbar with search and controls
+│   │   ├── features/          # Feature-specific components
+│   │   │   ├── LogDisplay/    # Main log display component
+│   │   │   ├── Dashboard/     # Analytics dashboard
+│   │   │   ├── IncidentDrawer/# AI analysis drawer
+│   │   │   ├── LogUploader/   # File upload functionality
+│   │   │   ├── LogPaste/      # Paste functionality
+│   │   │   ├── HistoryScreen/ # Log history management
+│   │   │   └── WelcomeScreen/ # Landing page
+│   │   └── layout/            # Layout components
+│   │       ├── Layout/        # Main app layout
+│   │       └── SettingsSidebar/# Settings panel
+│   ├── constants/             # App-wide constants
+│   │   └── index.ts           # Log levels, colors, API endpoints
+│   ├── services/              # External services and APIs
+│   │   └── analysis/          # Log analysis logic
+│   │       └── index.ts       # Incident detection, LLM integration
+│   ├── types/                 # TypeScript type definitions
+│   │   ├── logs.ts            # Log entry types
+│   │   └── index.ts           # Type exports
+│   ├── utils/                 # Utility functions and helpers
+│   │   ├── electron-api.ts    # Electron API wrapper
+│   │   ├── export-utils.ts    # Export functionality
+│   │   ├── helpers.ts         # General helper functions
+│   │   └── index.ts           # Utility exports
+│   ├── demos/                 # Demo files
+│   │   ├── ipc.ts             # IPC demo
+│   │   └── node.ts            # Node.js demo
+│   ├── App.tsx                # Main React component
+│   ├── App.css                # App-specific styles
+│   ├── index.css              # Global styles
+│   ├── main.tsx               # React entry point
+│   └── vite-env.d.ts          # Vite type definitions
+├── components/                # Shadcn/UI components
+│   └── ui/                    # Reusable UI primitives
 ├── public/                    # Static assets
 ├── dist/                      # Built renderer
 ├── dist-electron/             # Built main process
@@ -247,10 +282,13 @@ pino-logviewer/
 - **LLM Integration**: Communicates with local Ollama instance
 
 #### Renderer Process (`src/`)
-- **React Components**: Modern UI with TypeScript
+- **Component Architecture**: Organized by purpose (UI, features, layout)
+- **Type Safety**: Centralized TypeScript definitions
+- **Constants Management**: App-wide configuration and constants
+- **Service Layer**: External integrations and analysis logic
+- **Utility Functions**: Reusable helper functions and APIs
 - **State Management**: React hooks for local state
-- **Log Parsing**: Pino log format parsing
-- **Search & Filtering**: Real-time log filtering
+- **Log Parsing**: Pino log format parsing with browser-like search
 - **AI Analysis**: Incident detection and categorization
 
 #### Key Technologies

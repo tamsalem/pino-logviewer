@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { Button, Card, Popover, PopoverContent, PopoverTrigger } from '../../../components/ui'
-import { type IncidentAnalysis } from '../../analysis'
+import { Button, Card, Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui'
+import { type IncidentAnalysis } from '../../../services'
 
 export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, llmLoading }: { open: boolean, onClose: () => void, analysis: IncidentAnalysis | null, llmAvailable?: 'none' | 'gemini' | 'ollama' | 'any', llmLoading?: boolean }) {
   const [width, setWidth] = useState(520)
