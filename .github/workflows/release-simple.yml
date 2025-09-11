@@ -1,9 +1,6 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       version_type:
@@ -58,14 +55,6 @@ jobs:
           git tag "v$NEW_VERSION"
           git push origin "v$NEW_VERSION"
           # Skipping pushing branch to avoid branch protection issues
-
-      - name: Get version from tag
-        if: github.event_name == 'push'
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
-          # Update package.json version to match tag
-          npm version $VERSION --no-git-tag-version
 
       - name: Build and publish
         run: |
