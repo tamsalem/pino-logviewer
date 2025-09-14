@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Switch } from '../../../../components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover';
 import { Copy, Check, Settings, Clock } from 'lucide-react';
 import { electronAPI } from '../../../utils';
+import { useSettings } from '../../../contexts/SettingsContext';
 
 interface SettingsSidebarProps {
   isOpen: boolean;
@@ -12,7 +14,12 @@ interface SettingsSidebarProps {
 }
 
 export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProps) {
+  const { settings, updateSettings } = useSettings();
   const [retentionDays, setRetentionDays] = useState(7);
+  const [features, setFeatures] = useState({
+    timeline: false,
+    caseboard: false
+  });
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
 
@@ -21,12 +28,12 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
       loadSettings();
       checkOllamaStatus();
     }
-  }, [isOpen]);
+  }, [isOpen, settings]);
 
   const loadSettings = async () => {
     try {
-      const settings = await electronAPI.getSettings();
-      setRetentionDays(settings.retentionDays || 7);
+      setRetentionDays(settings.retentionDays);
+      setFeatures(settings.features);
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -34,7 +41,7 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
 
   const saveSettings = async () => {
     try {
-      await electronAPI.setSettings({ retentionDays });
+      await updateSettings({ retentionDays, features });
     } catch (error) {
       console.error('Failed to save settings:', error);
     }
@@ -174,6 +181,64 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
                     : 'The AI incident explainer will automatically use Ollama when available. If not detected, it falls back to heuristic analysis.'}
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <div className="border-t border-gray-700" />
+
+          {/* Feature Settings Section */}
+          <Card className="bg-gray-800/60 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-gray-200 text-base flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Feature Configuration
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Enable or disable advanced features
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label htmlFor="timeline-feature" className="text-gray-300 text-sm font-medium">
+                      Event Timeline Builder
+                    </label>
+                    <p className="text-gray-500 text-xs">
+                      Add logs to timeline and create investigation reports
+                    </p>
+                  </div>
+                  <Switch
+                    id="timeline-feature"
+                    checked={features.timeline}
+                    onCheckedChange={(checked) => setFeatures(prev => ({ ...prev, timeline: checked }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label htmlFor="caseboard-feature" className="text-gray-300 text-sm font-medium">
+                      Caseboard Mode
+                    </label>
+                    <p className="text-gray-500 text-xs">
+                      Full-screen investigation workspace with timeline events
+                    </p>
+                  </div>
+                  <Switch
+                    id="caseboard-feature"
+                    checked={features.caseboard}
+                    onCheckedChange={(checked) => setFeatures(prev => ({ ...prev, caseboard: checked }))}
+                    disabled={!features.timeline}
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={saveSettings}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                Save Feature Settings
+              </Button>
             </CardContent>
           </Card>
 

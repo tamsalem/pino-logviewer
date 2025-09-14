@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown, Clock } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -48,6 +48,9 @@ export default function LogToolbar(params: {
   currentSearchIndex?: number,
   onNavigateToNextSearch?: () => void,
   onNavigateToPreviousSearch?: () => void,
+  isTimelineVisible?: boolean,
+  onToggleTimeline?: () => void,
+  timelineEventCount?: number,
 }) {
   const {
     fileName,
@@ -73,6 +76,9 @@ export default function LogToolbar(params: {
     currentSearchIndex = 0,
     onNavigateToNextSearch,
     onNavigateToPreviousSearch,
+    isTimelineVisible = false,
+    onToggleTimeline,
+    timelineEventCount = 0,
   } = params
   const [inputValue, setInputValue] = useState(searchQuery);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -278,6 +284,40 @@ export default function LogToolbar(params: {
               <p>Toggle analytics dashboard</p>
             </TooltipContent>
           </Tooltip>
+
+          {/* Timeline Toggle */}
+          {onToggleTimeline && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative">
+                  <Button
+                      variant={isTimelineVisible ? "default" : "ghost"}
+                      size="icon"
+                      onClick={onToggleTimeline}
+                      className={isTimelineVisible ? "bg-blue-600 hover:bg-blue-700" : "text-gray-400 hover:bg-gray-700 hover:text-white"}
+                  >
+                    <Clock className="w-4 h-4" />
+                  </Button>
+                  {timelineEventCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                      {timelineEventCount}
+                    </span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-700 text-gray-200 border-gray-600">
+                <p>
+                  {timelineEventCount > 0 
+                    ? `Enter Caseboard Mode (${timelineEventCount} events)` 
+                    : 'Toggle Event Timeline Panel'
+                  }
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Enable in Settings → Feature Configuration
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Explain Incident */}
           {onExplainIncident && (

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Copy, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, ExternalLink, Clock } from 'lucide-react';
 import { Button } from '../../../../components/ui';
 import { LogLevel, type LogEntry as LogEntryType } from '../../../types';
 import { LOG_LEVEL_COLORS } from '../../../constants';
@@ -119,8 +119,8 @@ const highlightText = (text: string, pattern: RegExp | null) => {
   return <>{segments}</>;
 };
 
-export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern, hasSearchMatch, isCurrentSearchResult }: 
-    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null, hasSearchMatch?: boolean, isCurrentSearchResult?: boolean }) {
+export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern, hasSearchMatch, isCurrentSearchResult, onToggleTimeline, isInTimeline }: 
+    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null, hasSearchMatch?: boolean, isCurrentSearchResult?: boolean, onToggleTimeline?: (entry: LogEntryType) => void, isInTimeline?: boolean }) {
   const levelName = entry.level || 'NO_LEVEL';
   const levelColor = levelColors[levelName];
 
@@ -137,12 +137,35 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
     }
   };
 
+  const handleToggleTimeline = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the log selection
+    if (onToggleTimeline) {
+      onToggleTimeline(entry);
+    }
+  };
+
   return (
     <div
       data-log-id={entry.id}
       className={`border-l-4 transition-all duration-200 ${getBackgroundColor()}`}
     >
       <div className={`flex items-center px-4 cursor-pointer select-none ${isCompactView ? 'py-1' : 'py-2'}`} onClick={onClick}>
+        {onToggleTimeline && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleTimeline}
+            className={`h-6 w-6 p-0 flex-shrink-0 transition-all duration-300 mr-2 ${
+              isInTimeline 
+                ? 'bg-green-900/20 border border-green-500/50 text-green-300 hover:bg-green-800/30 hover:text-green-200' 
+                : 'bg-blue-900/20 border border-blue-500/50 text-blue-300 hover:bg-blue-800/30 hover:text-blue-200'
+            }`}
+            title={isInTimeline ? "Remove from Timeline" : "Add to Timeline"}
+          >
+            <Clock className="w-3 h-3" />
+          </Button>
+        )}
+        
         <div className="flex items-center mr-3 text-gray-500">
           {isExpanded ? (
             <ChevronDown className="w-4 h-4" />

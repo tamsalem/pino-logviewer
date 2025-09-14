@@ -1,12 +1,16 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { LogListView, LogToolbar } from '../../ui';
-import { LogDashboard, IncidentDrawer } from '../';
+import { LogDashboard, IncidentDrawer, TimelineBuilder } from '../';
 import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../../services';
 import { startOfDay, endOfDay } from 'date-fns';
 import { type LogEntry } from '../../../types';
 import { DEFAULT_FILTER_LEVELS, LLM_PROVIDERS, API_ENDPOINTS, SEARCH_DEBOUNCE_DELAY } from '../../../constants';
+import { useTimeline } from '../../../contexts/TimelineContext';
+import { useSettings } from '../../../contexts/SettingsContext';
 
 export default function LogDisplay({ entries, fileName, onClear }: { entries: LogEntry[], fileName: string, onClear: (_:any) => void }) {
+  const { state: timelineState, addEvent, removeEvent, togglePanel, toggleCaseboardMode } = useTimeline();
+  const { isFeatureEnabled } = useSettings();
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const [filterLevels, setFilterLevels] = useState<string[]>(DEFAULT_FILTER_LEVELS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -221,6 +225,25 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     })();
   }, [filteredEntries, fileName, incident]);
 
+  const handleToggleTimeline = useCallback((entry: LogEntry) => {
+    // Check if the log is already in the timeline
+    const isInTimeline = timelineState.events.some(event => event.logEntry.id === entry.id);
+    
+    if (isInTimeline) {
+      // Remove from timeline
+      const eventToRemove = timelineState.events.find(event => event.logEntry.id === entry.id);
+      if (eventToRemove) {
+        removeEvent(eventToRemove.id);
+      }
+    } else {
+      // Add to timeline
+      addEvent(entry);
+    }
+  }, [addEvent, removeEvent, timelineState.events]);
+
+  // Create a Set of log IDs that are in the timeline for efficient lookup
+  const timelineEventIds = new Set(timelineState.events.map(event => event.logEntry.id));
+
   return (
     <div className="h-full flex flex-col bg-gray-900">
       <LogToolbar
@@ -247,6 +270,15 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         currentSearchIndex={currentSearchIndex}
         onNavigateToNextSearch={navigateToNextSearch}
         onNavigateToPreviousSearch={navigateToPreviousSearch}
+        isTimelineVisible={isFeatureEnabled('timeline') && (timelineState.isPanelOpen || timelineState.isCaseboardMode)}
+        onToggleTimeline={isFeatureEnabled('timeline') ? () => {
+          if (timelineState.events.length > 0 && isFeatureEnabled('caseboard')) {
+            toggleCaseboardMode();
+          } else {
+            togglePanel();
+          }
+        } : undefined}
+        timelineEventCount={timelineState.events.length}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0 bg-gray-900">
@@ -260,9 +292,20 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
           searchPattern={searchPattern}
           searchResults={searchResults}
           currentSearchIndex={currentSearchIndex}
+          onToggleTimeline={isFeatureEnabled('timeline') ? handleToggleTimeline : undefined}
+          timelineEventIds={isFeatureEnabled('timeline') ? timelineEventIds : undefined}
         />
       </div>
       <IncidentDrawer open={isIncidentOpen} onClose={() => setIsIncidentOpen(false)} analysis={incident} llmAvailable={llmAvailable} llmLoading={llmLoading} />
+      {isFeatureEnabled('timeline') && (
+        <TimelineBuilder isOpen={timelineState.isPanelOpen || timelineState.isCaseboardMode} onClose={() => {
+          if (timelineState.isCaseboardMode) {
+            toggleCaseboardMode();
+          } else {
+            togglePanel();
+          }
+        }} />
+      )}
     </div>
   );
 }

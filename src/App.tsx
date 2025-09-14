@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LogDisplay, WelcomeScreen, HistoryScreen, Layout } from './components';
 import { LogEntry } from './types';
 import { parseLogText } from './utils';
+import { TimelineProvider } from './contexts/TimelineContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import './App.css'
 
 export default function LogViewerPage() {
@@ -47,52 +49,56 @@ export default function LogViewerPage() {
   }, [handleFileUpload]);
 
   return (
-    <Layout onFileUpload={handleFileUpload} onShowHistory={handleShowHistory}>
-      <div className="flex flex-col bg-gray-900" style={{ height: '100%' }}>
-        <AnimatePresence mode="wait">
-          {currentScreen === 'history' ? (
-            <motion.div
-              key="history"
-              initial={{ opacity: 0, x: 300 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 300 }}
-              transition={{ duration: 0.3 }}
-              className="flex-grow min-h-0"
-            >
-              <HistoryScreen 
-                onBack={handleBackFromHistory}
-                onLoadHistory={handleLoadHistory}
-              />
-            </motion.div>
-          ) : logEntries.length === 0 ? (
-            <motion.div
-              key="uploader"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="flex-grow overflow-auto"
-            >
-              <WelcomeScreen onFileUpload={handleFileUpload} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="display"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex-grow min-h-0"
-            >
-              <LogDisplay
-                entries={logEntries}
-                fileName={fileName}
-                onClear={handleClear}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </Layout>
+    <SettingsProvider>
+      <TimelineProvider>
+        <Layout onFileUpload={handleFileUpload} onShowHistory={handleShowHistory}>
+        <div className="flex flex-col bg-gray-900" style={{ height: '100%' }}>
+          <AnimatePresence mode="wait">
+            {currentScreen === 'history' ? (
+              <motion.div
+                key="history"
+                initial={{ opacity: 0, x: 300 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 300 }}
+                transition={{ duration: 0.3 }}
+                className="flex-grow min-h-0"
+              >
+                <HistoryScreen 
+                  onBack={handleBackFromHistory}
+                  onLoadHistory={handleLoadHistory}
+                />
+              </motion.div>
+            ) : logEntries.length === 0 ? (
+              <motion.div
+                key="uploader"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="flex-grow overflow-auto"
+              >
+                <WelcomeScreen onFileUpload={handleFileUpload} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="display"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="flex-grow min-h-0"
+              >
+                <LogDisplay
+                  entries={logEntries}
+                  fileName={fileName}
+                  onClear={handleClear}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </Layout>
+      </TimelineProvider>
+    </SettingsProvider>
   );
 }

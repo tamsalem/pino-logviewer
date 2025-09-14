@@ -2,8 +2,8 @@ import { useEffect, useCallback } from 'react';
 import LogEntry from '../LogEntry';
 import { type LogEntry as LogEntryType } from '../../../types';
 
-export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern, searchResults, currentSearchIndex } :
-    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null, searchResults?: { entryId: number; index: number }[], currentSearchIndex?: number }
+export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern, searchResults, currentSearchIndex, onToggleTimeline, timelineEventIds } :
+    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null, searchResults?: { entryId: number; index: number }[], currentSearchIndex?: number, onToggleTimeline?: (entry: LogEntryType) => void, timelineEventIds?: Set<number> }
 ) {
   // Handle keyboard navigation
   useEffect(() => {
@@ -83,6 +83,8 @@ export default function LogListView({ entries, selectedLogId, onSelectLog, onKey
               searchPattern={searchPattern}
               hasSearchMatch={hasSearchMatch}
               isCurrentSearchResult={isCurrentSearchResult}
+              onToggleTimeline={onToggleTimeline}
+              isInTimeline={timelineEventIds?.has(entry.id) || false}
             />
           );
         })}

@@ -19,6 +19,10 @@ const HISTORY_DIR = path.join(os.homedir(), '.pino-logviewer', 'history');
 
 interface Settings {
   retentionDays: number;
+  features: {
+    timeline: boolean;
+    caseboard: boolean;
+  };
 }
 
 interface HistoryEntry {
@@ -174,9 +178,23 @@ app.on('window-all-closed', () => {
 ipcMain.handle('get-settings', async () => {
   try {
     const data = await fs.readFile(SETTINGS_FILE, 'utf8');
-    return JSON.parse(data);
+    const settings = JSON.parse(data);
+    // Ensure features object exists with defaults
+    if (!settings.features) {
+      settings.features = {
+        timeline: false,
+        caseboard: false
+      };
+    }
+    return settings;
   } catch (error) {
-    return { retentionDays: 7 }; // default
+    return { 
+      retentionDays: 7,
+      features: {
+        timeline: false,
+        caseboard: false
+      }
+    }; // default
   }
 });
 
