@@ -44,7 +44,7 @@ A powerful desktop application for analyzing and visualizing Pino log files with
 ### Installation
 
 #### Option 1: Download Pre-built Binary
-1. Go to the [Releases](https://github.com/your-username/pino-logviewer/releases) page
+1. Go to the [Releases](https://github.com/tamsalem/pino-logviewer/releases) page
 2. Download the installer for your operating system
 3. Run the installer and follow the setup wizard
 
@@ -177,7 +177,7 @@ ollama serve
 - Check that the log file loaded successfully
 
 #### Getting Help
-- Check the [Issues](https://github.com/your-username/pino-logviewer/issues) page
+- Check the [Issues](https://github.com/tamsalem/pino-logviewer/issues) page
 - Create a new issue with:
   - Your operating system
   - App version
@@ -198,7 +198,7 @@ ollama serve
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/pino-logviewer.git
+   git clone https://github.com/tamsalem/pino-logviewer.git
    cd pino-logviewer
    ```
 
@@ -306,7 +306,7 @@ pino-logviewer/
 
 1. **Fork the Repository**
    ```bash
-   git fork https://github.com/your-username/pino-logviewer.git
+   git fork https://github.com/tamsalem/pino-logviewer.git
    ```
 
 2. **Create a Feature Branch**
@@ -446,8 +446,8 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/pino-logviewer/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/pino-logviewer/discussions)
+- **Issues**: [GitHub Issues](https://github.com/tamsalem/pino-logviewer/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tamsalem/pino-logviewer/discussions)
 - **Email**: tamsalem@paloaltonetworks.com
 
 ---
