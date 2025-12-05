@@ -60,8 +60,14 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
 
   const sanitizeLLMHtml = (html: string) => {
     try {
+      // Remove markdown code fences that LLM might add
+      let cleaned = html
+        .replace(/```html\s*/gi, '')
+        .replace(/```\s*$/gi, '')
+        .trim()
+      
       const div = document.createElement('div')
-      div.innerHTML = html
+      div.innerHTML = cleaned
       div.querySelectorAll('script,style').forEach(n => n.remove())
       div.querySelectorAll('*').forEach((el: Element) => {
         const attrs = Array.from(el.attributes)
@@ -256,7 +262,124 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
                         Generating AI summary...
                       </div>
                     ) : (
-                      <div className="prose prose-invert max-w-none" style={{ color: 'var(--logviewer-text-primary)' }} dangerouslySetInnerHTML={{ __html: sanitizeLLMHtml(a.llmSummary!) }} />
+                      <>
+                        <div
+                          className="llm-summary-content"
+                          style={{
+                            color: 'var(--logviewer-text-primary)',
+                            fontSize: '0.875rem',
+                            lineHeight: '1.5'
+                          }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeLLMHtml(a.llmSummary!) }}
+                        />
+                        <style>{`
+                        .llm-summary-content .incident-section {
+                          margin-bottom: 1.5rem;
+                          padding: 1rem;
+                          background-color: var(--logviewer-bg-tertiary);
+                          border-radius: 0.375rem;
+                          border: 1px solid var(--logviewer-border-primary);
+                        }
+                        
+                        .llm-summary-content .section-title {
+                          font-size: 1rem;
+                          font-weight: 600;
+                          margin: 0 0 0.75rem 0;
+                          color: var(--logviewer-text-primary);
+                          padding-bottom: 0.5rem;
+                          border-bottom: 1px solid var(--logviewer-border-secondary);
+                        }
+                        
+                        .llm-summary-content .section-content {
+                          color: var(--logviewer-text-primary);
+                        }
+                        
+                        .llm-summary-content .section-content p {
+                          margin: 0.5rem 0;
+                          line-height: 1.6;
+                        }
+                        
+                        .llm-summary-content .section-content p:first-child {
+                          margin-top: 0;
+                        }
+                        
+                        .llm-summary-content .section-content p:last-child {
+                          margin-bottom: 0;
+                        }
+                        
+                        .llm-summary-content .root-cause-box {
+                          background-color: var(--logviewer-bg-primary);
+                          border-left: 3px solid var(--logviewer-accent-primary);
+                          padding: 0.75rem;
+                          border-radius: 0.25rem;
+                        }
+                        
+                        .llm-summary-content .cause-title {
+                          font-size: 0.9375rem;
+                          margin-bottom: 0.5rem;
+                          color: var(--logviewer-accent-primary);
+                        }
+                        
+                        .llm-summary-content .cause-explanation {
+                          margin: 0.5rem 0;
+                        }
+                        
+                        .llm-summary-content .cause-evidence {
+                          margin-top: 0.5rem;
+                          font-size: 0.8125rem;
+                          color: var(--logviewer-text-secondary);
+                        }
+                        
+                        .llm-summary-content .pattern-list,
+                        .llm-summary-content .hypothesis-list,
+                        .llm-summary-content .action-list {
+                          margin: 0.5rem 0;
+                          padding-left: 1.5rem;
+                        }
+                        
+                        .llm-summary-content .pattern-list li,
+                        .llm-summary-content .hypothesis-list li,
+                        .llm-summary-content .action-list li {
+                          margin: 0.5rem 0;
+                          line-height: 1.6;
+                        }
+                        
+                        .llm-summary-content .action-list {
+                          list-style-type: decimal;
+                        }
+                        
+                        .llm-summary-content strong {
+                          color: var(--logviewer-text-primary);
+                          font-weight: 600;
+                        }
+                        
+                        .llm-summary-content h3 {
+                          font-size: 1rem;
+                          font-weight: 600;
+                          margin: 1rem 0 0.5rem 0;
+                          color: var(--logviewer-text-primary);
+                        }
+                        
+                        .llm-summary-content ul,
+                        .llm-summary-content ol {
+                          margin: 0.5rem 0;
+                          padding-left: 1.5rem;
+                        }
+                        
+                        .llm-summary-content li {
+                          margin: 0.375rem 0;
+                        }
+                        
+                        .llm-summary-content code {
+                          background-color: var(--logviewer-bg-primary);
+                          padding: 0.125rem 0.25rem;
+                          border-radius: 0.25rem;
+                          font-family: monospace;
+                          font-size: 0.8125rem;
+                          color: var(--logviewer-accent-primary);
+                        }
+                        `}</style>
+                      </>
                     )}
                   </div>
                 )}
