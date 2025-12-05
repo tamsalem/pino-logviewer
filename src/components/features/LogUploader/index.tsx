@@ -47,7 +47,11 @@ export default function LogUploader({ onFileUpload }: { onFileUpload: (_:any) =>
 
   return (
     <motion.div
-      className={`relative group w-full p-8 border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors duration-300 ${isDragging ? 'border-indigo-400 bg-gray-800' : 'border-gray-700 hover:border-gray-600'}`}
+      className="relative group w-full p-8 border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors duration-300"
+      style={{
+        borderColor: isDragging ? 'var(--logviewer-accent-primary)' : 'var(--logviewer-border-primary)',
+        backgroundColor: isDragging ? 'var(--logviewer-bg-secondary)' : 'transparent'
+      }}
       onDrop={handleDrop}
       onDragEnter={handleDrag}
       onDragOver={handleDrag}
@@ -64,9 +68,12 @@ export default function LogUploader({ onFileUpload }: { onFileUpload: (_:any) =>
         onChange={handleFileChange}
       />
       <div className="flex flex-col items-center justify-center space-y-4">
-        <UploadCloud className={`h-12 w-12 text-gray-500 transition-colors duration-300 ${isDragging ? 'text-indigo-400' : 'group-hover:text-gray-400'}`} />
-        <p className="text-lg font-medium text-gray-300">
-          <span className="text-indigo-400">Click to upload</span> or drag and drop a .log file
+        <UploadCloud
+          className="h-12 w-12 transition-colors duration-300"
+          style={{ color: isDragging ? 'var(--logviewer-accent-primary)' : 'var(--logviewer-text-secondary)' }}
+        />
+        <p className="text-lg font-medium" style={{ color: 'var(--logviewer-text-primary)' }}>
+          <span style={{ color: 'var(--logviewer-accent-primary)' }}>Click to upload</span> or drag and drop a .log file
         </p>
       </div>
     </motion.div>

@@ -37,12 +37,13 @@ export default function LogPaste({ onLogsParsed }: { onLogsParsed: (_:any) => vo
 
     return (
         <motion.div
-            className="mt-8 p-6 border-2 border-dashed rounded-xl border-gray-700"
+            className="mt-8 p-6 border-2 border-dashed rounded-xl"
+            style={{ borderColor: 'var(--logviewer-border-primary)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
         >
-            <div className="flex items-center gap-2 mb-4 text-gray-300">
-                <Clipboard className="w-5 h-5 text-indigo-400" />
+            <div className="flex items-center gap-2 mb-4" style={{ color: 'var(--logviewer-text-primary)' }}>
+                <Clipboard className="w-5 h-5" style={{ color: 'var(--logviewer-accent-primary)' }} />
                 <span className="font-medium">Paste Logs</span>
             </div>
             <textarea
@@ -50,16 +51,26 @@ export default function LogPaste({ onLogsParsed }: { onLogsParsed: (_:any) => vo
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Paste your raw or JSON logs here..."
-                className="w-full p-3 rounded bg-gray-900 border border-gray-700 text-gray-200 font-mono text-sm resize-y focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full p-3 rounded font-mono text-sm resize-y"
+                style={{
+                    backgroundColor: 'var(--logviewer-bg-secondary)',
+                    border: `1px solid var(--logviewer-border-primary)`,
+                    color: 'var(--logviewer-text-primary)'
+                }}
             />
-            {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+            {error && <p className="mt-2 text-sm" style={{ color: 'var(--logviewer-error-text)' }}>{error}</p>}
             <div className="mt-3 flex justify-end">
                 <Button
                     variant="outline"
                     size="sm"
                     disabled={!text.trim()}
                     onClick={handleParse}
-                    className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700"
+                    className="border"
+                    style={{
+                        color: 'var(--logviewer-text-primary)',
+                        backgroundColor: 'var(--logviewer-bg-secondary)',
+                        borderColor: 'var(--logviewer-border-primary)'
+                    }}
                 >
                     Parse
                 </Button>

@@ -222,7 +222,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   }, [filteredEntries, fileName, incident]);
 
   return (
-    <div className="h-full flex flex-col bg-gray-900">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
       <LogToolbar
         fileName={fileName}
         onClear={onClear}
@@ -249,7 +249,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         onNavigateToPreviousSearch={navigateToPreviousSearch}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
-      <div className="flex-grow min-h-0 bg-gray-900">
+      <div className="flex-grow min-h-0" style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
         <LogListView
           entries={filteredEntries}
           selectedLogId={selectedLogId}

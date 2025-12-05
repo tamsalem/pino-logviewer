@@ -145,22 +145,22 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-900 text-gray-200">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--logviewer-bg-primary)', color: 'var(--logviewer-text-primary)' }}>
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-gray-700/50 p-4">
+      <div className="flex-shrink-0 p-4" style={{ borderBottom: `1px solid var(--logviewer-border-primary)` }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="text-gray-400 hover:text-white hover:bg-gray-800"
+              style={{ color: 'var(--logviewer-text-secondary)' }}
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="flex items-center gap-2">
-              <History className="w-6 h-6 text-indigo-400" />
-              <h1 className="text-xl font-semibold text-white">Log History</h1>
+              <History className="w-6 h-6" style={{ color: 'var(--logviewer-accent-primary)' }} />
+              <h1 className="text-xl font-semibold" style={{ color: 'var(--logviewer-text-primary)' }}>Log History</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -168,7 +168,12 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
               variant="outline"
               size="sm"
               onClick={handleClearAllHistory}
-              className="text-gray-300 bg-gray-800 border-gray-700 hover:bg-gray-700"
+              className="border"
+              style={{
+                color: 'var(--logviewer-text-primary)',
+                backgroundColor: 'var(--logviewer-bg-secondary)',
+                borderColor: 'var(--logviewer-border-primary)'
+              }}
               disabled={historyEntries.length === 0}
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -179,22 +184,32 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
       </div>
 
       {/* Search and Filters */}
-      <div className="flex-shrink-0 p-4 border-b border-gray-700/50">
+      <div className="flex-shrink-0 p-4" style={{ borderBottom: `1px solid var(--logviewer-border-primary)` }}>
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--logviewer-text-secondary)' }} />
             <Input
               placeholder="Search history entries..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-400"
+              className="pl-10"
+              style={{
+                backgroundColor: 'var(--logviewer-bg-secondary)',
+                border: `1px solid var(--logviewer-border-primary)`,
+                color: 'var(--logviewer-text-primary)'
+              }}
             />
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
-            className="text-gray-300 bg-gray-800 border-gray-700 hover:bg-gray-700"
+            className="border"
+            style={{
+              color: 'var(--logviewer-text-primary)',
+              backgroundColor: 'var(--logviewer-bg-secondary)',
+              borderColor: 'var(--logviewer-border-primary)'
+            }}
           >
             {sortOrder === 'newest' ? <SortDesc className="w-4 h-4 mr-2" /> : <SortAsc className="w-4 h-4 mr-2" />}
             {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
@@ -208,10 +223,10 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
         <div className="flex-1 p-4 overflow-auto">
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <div className="text-gray-400">Loading history...</div>
+              <div style={{ color: 'var(--logviewer-text-secondary)' }}>Loading history...</div>
             </div>
           ) : filteredEntries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+            <div className="flex flex-col items-center justify-center h-32" style={{ color: 'var(--logviewer-text-secondary)' }}>
               <History className="w-12 h-12 mb-4 opacity-50" />
               <p className="text-lg font-medium">No history entries found</p>
               <p className="text-sm">Paste logs to start building your history</p>
@@ -221,25 +236,44 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
               {filteredEntries.map((entry) => (
                 <Card
                   key={entry.id}
-                  className={`cursor-pointer transition-all hover:bg-gray-800/50 ${
-                    selectedEntry?.id === entry.id ? 'ring-2 ring-indigo-500 bg-gray-800/50' : 'bg-gray-800/30'
-                  }`}
+                  className="cursor-pointer transition-all border"
+                  style={{
+                    backgroundColor: selectedEntry?.id === entry.id ? 'var(--logviewer-bg-secondary)' : 'var(--logviewer-bg-tertiary)',
+                    borderColor: selectedEntry?.id === entry.id ? 'var(--logviewer-accent-primary)' : 'var(--logviewer-border-primary)',
+                    borderWidth: selectedEntry?.id === entry.id ? '2px' : '1px'
+                  }}
                   onClick={() => setSelectedEntry(entry)}
+                  onMouseEnter={(e) => {
+                    if (selectedEntry?.id !== entry.id) {
+                      e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-hover)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedEntry?.id !== entry.id) {
+                      e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-tertiary)';
+                    }
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-400">{formatDate(entry.timestamp)}</span>
-                          <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">
+                          <Calendar className="w-4 h-4" style={{ color: 'var(--logviewer-text-secondary)' }} />
+                          <span className="text-sm" style={{ color: 'var(--logviewer-text-secondary)' }}>{formatDate(entry.timestamp)}</span>
+                          <span 
+                            className="text-xs px-2 py-1 rounded"
+                            style={{ 
+                              backgroundColor: 'var(--logviewer-bg-primary)', 
+                              color: 'var(--logviewer-text-primary)' 
+                            }}
+                          >
                             {entry.logCount} logs
                           </span>
                         </div>
-                        <p className="text-gray-200 text-sm font-mono">
+                        <p className="text-sm font-mono" style={{ color: 'var(--logviewer-text-primary)' }}>
                           {truncatePreview(entry.preview)}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">ID: {entry.id}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--logviewer-text-tertiary)' }}>ID: {entry.id}</p>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
                         <Button
@@ -249,7 +283,7 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
                             e.stopPropagation();
                             handleLoadEntry(entry);
                           }}
-                          className="text-gray-400 hover:text-white hover:bg-gray-700"
+                          style={{ color: 'var(--logviewer-text-secondary)' }}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -260,7 +294,9 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
                             e.stopPropagation();
                             handleDeleteEntry(entry.id);
                           }}
-                          className="text-gray-400 hover:text-red-400 hover:bg-gray-700"
+                          style={{ color: 'var(--logviewer-text-secondary)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--logviewer-error-text)'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--logviewer-text-secondary)'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -275,31 +311,43 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
 
         {/* Entry Details */}
         {selectedEntry && (
-          <div className="w-96 border-l border-gray-700/50 p-4 overflow-auto">
-            <Card className="bg-gray-800/50">
+          <div className="w-96 p-4 overflow-auto" style={{ borderLeft: `1px solid var(--logviewer-border-primary)` }}>
+            <Card 
+              className="border"
+              style={{ 
+                backgroundColor: 'var(--logviewer-bg-secondary)', 
+                borderColor: 'var(--logviewer-border-primary)' 
+              }}
+            >
               <CardHeader>
-                <CardTitle className="text-gray-200 text-base flex items-center gap-2">
+                <CardTitle className="text-base flex items-center gap-2" style={{ color: 'var(--logviewer-text-primary)' }}>
                   <FileText className="w-4 h-4" />
                   Entry Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-gray-400 text-sm">Date & Time</label>
-                  <p className="text-gray-200">{new Date(selectedEntry.timestamp).toLocaleString()}</p>
+                  <label className="text-sm" style={{ color: 'var(--logviewer-text-secondary)' }}>Date & Time</label>
+                  <p style={{ color: 'var(--logviewer-text-primary)' }}>{new Date(selectedEntry.timestamp).toLocaleString()}</p>
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Log Count</label>
-                  <p className="text-gray-200">{selectedEntry.logCount} entries</p>
+                  <label className="text-sm" style={{ color: 'var(--logviewer-text-secondary)' }}>Log Count</label>
+                  <p style={{ color: 'var(--logviewer-text-primary)' }}>{selectedEntry.logCount} entries</p>
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Entry ID</label>
-                  <p className="text-gray-200 font-mono text-xs break-all">{selectedEntry.id}</p>
+                  <label className="text-sm" style={{ color: 'var(--logviewer-text-secondary)' }}>Entry ID</label>
+                  <p className="font-mono text-xs break-all" style={{ color: 'var(--logviewer-text-primary)' }}>{selectedEntry.id}</p>
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Preview</label>
-                  <div className="bg-gray-900 p-3 rounded border border-gray-700">
-                    <pre className="text-gray-300 text-xs whitespace-pre-wrap">
+                  <label className="text-sm" style={{ color: 'var(--logviewer-text-secondary)' }}>Preview</label>
+                  <div 
+                    className="p-3 rounded border"
+                    style={{ 
+                      backgroundColor: 'var(--logviewer-bg-primary)', 
+                      borderColor: 'var(--logviewer-border-primary)' 
+                    }}
+                  >
+                    <pre className="text-xs whitespace-pre-wrap" style={{ color: 'var(--logviewer-text-primary)' }}>
                       {selectedEntry.preview}
                     </pre>
                   </div>
@@ -307,7 +355,11 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
                 <div className="flex gap-2 pt-4">
                   <Button
                     onClick={() => handleLoadEntry(selectedEntry)}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="flex-1"
+                    style={{ 
+                      backgroundColor: 'var(--logviewer-accent-primary)', 
+                      color: 'var(--logviewer-text-inverse)' 
+                    }}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Load Entry
@@ -315,7 +367,11 @@ export default function HistoryScreen({ onBack, onLoadHistory }: HistoryScreenPr
                   <Button
                     variant="outline"
                     onClick={() => handleDeleteEntry(selectedEntry.id)}
-                    className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
+                    className="border"
+                    style={{ 
+                      color: 'var(--logviewer-error-text)', 
+                      borderColor: 'var(--logviewer-error-border)' 
+                    }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

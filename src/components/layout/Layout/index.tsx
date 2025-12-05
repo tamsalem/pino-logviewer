@@ -1,7 +1,14 @@
-import { Logs, Settings, History } from 'lucide-react';
+import { Logs, Settings, History, Sun, Moon } from 'lucide-react';
 import { Button } from '../../../../components/ui/button';
 import { useState } from 'react';
 import SettingsSidebar from '../SettingsSidebar';
+import { useTheme } from '../../../contexts/ThemeContext';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@radix-ui/react-tooltip';
 
 export default function Layout({ children, onFileUpload, onShowHistory }: { 
   children: any, 
@@ -9,9 +16,13 @@ export default function Layout({ children, onFileUpload, onShowHistory }: {
   onShowHistory?: () => void 
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="h-screen bg-gray-900 text-gray-200 font-sans flex flex-col">
+    <div className="h-screen font-sans flex flex-col" style={{
+      backgroundColor: 'var(--logviewer-bg-primary)',
+      color: 'var(--logviewer-text-primary)'
+    }}>
       <style>{`
         .line-clamp-2 {
           display: -webkit-box;
@@ -27,41 +38,105 @@ export default function Layout({ children, onFileUpload, onShowHistory }: {
           overflow: hidden;
         }
       `}</style>
-      <header className="flex-shrink-0 border-b border-gray-700/50">
+      <header className="flex-shrink-0" style={{ borderBottom: `1px solid var(--logviewer-border-primary)` }}>
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="bg-gray-800 p-2 rounded-lg">
-                <Logs className="h-6 w-6 text-indigo-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--logviewer-bg-secondary)' }}>
+                <Logs className="h-6 w-6" style={{ color: 'var(--logviewer-accent-primary)' }} />
               </div>
-              <h1 className="text-xl font-semibold tracking-tight text-white">
+              <h1 className="text-xl font-semibold tracking-tight" style={{ color: 'var(--logviewer-text-primary)' }}>
                 Pino Log Viewer
               </h1>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onShowHistory}
-                className="text-gray-400 hover:text-white hover:bg-gray-800 flex items-center gap-2"
-              >
-                <History className="w-4 h-4" />
-                History
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSettingsOpen(true)}
-                className="text-gray-400 hover:text-white hover:bg-gray-800 flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                Settings
-              </Button>
-            </div>
+            <TooltipProvider delayDuration={500}>
+              <div className="flex items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={onShowHistory}
+                      className="hover:bg-opacity-10"
+                      style={{
+                        color: 'var(--logviewer-text-secondary)',
+                        '--tw-bg-opacity': '0.1'
+                      } as any}
+                    >
+                      <History className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="px-2 py-1 text-xs rounded"
+                    style={{
+                      backgroundColor: 'var(--logviewer-bg-elevated)',
+                      color: 'var(--logviewer-text-primary)',
+                      border: `1px solid var(--logviewer-border-primary)`
+                    }}
+                  >
+                    <p>History</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleTheme}
+                      className="hover:bg-opacity-10"
+                      style={{
+                        color: 'var(--logviewer-text-secondary)',
+                        '--tw-bg-opacity': '0.1'
+                      } as any}
+                    >
+                      {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="px-2 py-1 text-xs rounded"
+                    style={{
+                      backgroundColor: 'var(--logviewer-bg-elevated)',
+                      color: 'var(--logviewer-text-primary)',
+                      border: `1px solid var(--logviewer-border-primary)`
+                    }}
+                  >
+                    <p>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="hover:bg-opacity-10"
+                      style={{
+                        color: 'var(--logviewer-text-secondary)',
+                        '--tw-bg-opacity': '0.1'
+                      } as any}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="px-2 py-1 text-xs rounded"
+                    style={{
+                      backgroundColor: 'var(--logviewer-bg-elevated)',
+                      color: 'var(--logviewer-text-primary)',
+                      border: `1px solid var(--logviewer-border-primary)`
+                    }}
+                  >
+                    <p>Settings</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </header>
-      <main className="flex-grow min-h-0 bg-gray-900 scrollbar-track-gray-800">
+      <main className="flex-grow min-h-0" style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
         {children}
       </main>
       

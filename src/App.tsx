@@ -48,7 +48,7 @@ export default function LogViewerPage() {
 
   return (
     <Layout onFileUpload={handleFileUpload} onShowHistory={handleShowHistory}>
-      <div className="flex flex-col bg-gray-900" style={{ height: '100%' }}>
+      <div className="flex flex-col" style={{ height: '100%', backgroundColor: 'var(--logviewer-bg-primary)' }}>
         <AnimatePresence mode="wait">
           {currentScreen === 'history' ? (
             <motion.div

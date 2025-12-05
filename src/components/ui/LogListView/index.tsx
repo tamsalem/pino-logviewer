@@ -51,7 +51,13 @@ export default function LogListView({ entries, selectedLogId, onSelectLog, onKey
 
   if (entries.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500 bg-gray-900">
+      <div
+        className="flex items-center justify-center h-full"
+        style={{
+          color: 'var(--logviewer-text-secondary)',
+          backgroundColor: 'var(--logviewer-bg-primary)'
+        }}
+      >
         <div className="text-center">
           <div className="text-6xl mb-4">🔍</div>
           <p className="text-xl">No matching logs found</p>
@@ -64,10 +70,11 @@ export default function LogListView({ entries, selectedLogId, onSelectLog, onKey
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full overflow-auto focus:outline-none bg-gray-900 scroll-smooth"
+      className="h-full overflow-auto focus:outline-none scroll-smooth"
+      style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}
       tabIndex={0}
     >
-      <div className="bg-gray-900">
+      <div style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
         {entries.map((entry: LogEntryType) => {
           const hasSearchMatch = searchResults?.some(result => result.entryId === entry.id) || false;
           const isCurrentSearchResult = searchResults?.[currentSearchIndex || 0]?.entryId === entry.id;
