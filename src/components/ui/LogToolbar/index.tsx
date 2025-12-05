@@ -21,7 +21,7 @@ import {
   PopoverTrigger,
 } from '../../../../components/ui';
 import { Sparkles } from 'lucide-react';
-import { exportToCSV, exportToJSON, getFilteredLogs, type LogEntry, type ExportOptions } from '../../../utils';
+import { exportToCSV, exportToJSON, type LogEntry, type ExportOptions } from '../../../utils';
 import { LOG_LEVEL_OPTIONS, SEARCH_DEBOUNCE_DELAY } from '../../../constants';
 
 export default function LogToolbar(params: {
@@ -99,7 +99,7 @@ export default function LogToolbar(params: {
   
   const clearAllFilters = () => {
     setSearchQuery('');
-    setFilterLevels([]);
+    setFilterLevels(LOG_LEVEL_OPTIONS.map(opt => opt.value));
     setTimeRange({ start: null, end: null });
   };
   
@@ -227,24 +227,30 @@ export default function LogToolbar(params: {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1 px-2"
                       style={{ color: 'var(--logviewer-text-secondary)' }}
                     >
                       <Filter className="w-4 h-4" />
+                      {filterLevels.length > 0 && (
+                        <span className="text-xs font-medium" style={{ color: 'var(--logviewer-text-secondary)' }}>
+                          {filterLevels.length}
+                        </span>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
-                <TooltipContent 
+                <TooltipContent
                   className="px-2 py-1 text-xs rounded"
-                  style={{ 
-                    backgroundColor: 'var(--logviewer-bg-elevated)', 
+                  style={{
+                    backgroundColor: 'var(--logviewer-bg-elevated)',
                     color: 'var(--logviewer-text-primary)',
                     border: `1px solid var(--logviewer-border-primary)`
                   }}
                 >
-                  <p>Filter by level</p>
+                  <p>Filter by level ({filterLevels.length} selected)</p>
                 </TooltipContent>
               </Tooltip>
               <DropdownMenuContent 
@@ -415,10 +421,10 @@ export default function LogToolbar(params: {
                   <ArrowDownUp className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent 
+              <TooltipContent
                 className="px-2 py-1 text-xs rounded"
-                style={{ 
-                  backgroundColor: 'var(--logviewer-bg-elevated)', 
+                style={{
+                  backgroundColor: 'var(--logviewer-bg-elevated)',
                   color: 'var(--logviewer-text-primary)',
                   border: `1px solid var(--logviewer-border-primary)`
                 }}
@@ -426,6 +432,32 @@ export default function LogToolbar(params: {
                 <p>Sort by time ({sortOrder === 'desc' ? 'Newest First' : 'Oldest First'})</p>
               </TooltipContent>
             </Tooltip>
+
+            {/* Clear Filters Button */}
+            {activeFiltersCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={clearAllFilters}
+                    style={{ color: 'var(--logviewer-text-secondary)' }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="px-2 py-1 text-xs rounded"
+                  style={{
+                    backgroundColor: 'var(--logviewer-bg-elevated)',
+                    color: 'var(--logviewer-text-primary)',
+                    border: `1px solid var(--logviewer-border-primary)`
+                  }}
+                >
+                  <p>Clear all filters ({activeFiltersCount})</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
 
           {/* View & Analysis Group */}
@@ -439,7 +471,6 @@ export default function LogToolbar(params: {
                     onClick={onToggleDashboard}
                     style={{ 
                       color: isDashboardVisible ? 'var(--logviewer-accent-primary)' : 'var(--logviewer-text-secondary)',
-                      backgroundColor: isDashboardVisible ? 'var(--logviewer-bg-active)' : 'transparent'
                     }}
                 >
                   <BarChart3 className="w-4 h-4" />
@@ -561,33 +592,6 @@ export default function LogToolbar(params: {
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Clear Filters Button */}
-          {activeFiltersCount > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={clearAllFilters}
-                  className="text-xs"
-                  style={{ color: 'var(--logviewer-text-secondary)' }}
-                >
-                  Clear ({activeFiltersCount})
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent 
-                className="px-2 py-1 text-xs rounded"
-                style={{ 
-                  backgroundColor: 'var(--logviewer-bg-elevated)', 
-                  color: 'var(--logviewer-text-primary)',
-                  border: `1px solid var(--logviewer-border-primary)`
-                }}
-              >
-                <p>Remove all active filters</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
 
           {/* Count & Clear */}
           <div className="flex items-center gap-4 ml-auto">
