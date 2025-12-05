@@ -63,7 +63,7 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
   const ollamaCommands = [
     'curl -fsSL https://ollama.ai/install.sh | sh',
     'ollama serve',
-    'ollama pull llama3.1:8b'
+    'ollama pull qwen2.5:7b'
   ];
 
   if (!isOpen) return null;
@@ -175,9 +175,9 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
                 </div>
 
                 <div>
-                  <label className="text-sm" style={{ color: 'var(--logviewer-text-primary)' }}>3. Download Model</label>
+                  <label className="text-sm" style={{ color: 'var(--logviewer-text-primary)' }}>3. Download Recommended Model</label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code 
+                    <code
                       className="flex-1 text-xs p-2 rounded border"
                       style={{
                         backgroundColor: 'var(--logviewer-bg-primary)',
@@ -195,6 +195,12 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
                     >
                       {copiedCommand === ollamaCommands[2] ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </Button>
+                  </div>
+                  <div className="text-xs mt-2 p-2 rounded" style={{ backgroundColor: 'var(--logviewer-info-bg)', color: 'var(--logviewer-info-text)' }}>
+                    <strong>qwen2.5:7b</strong> - Excellent for log analysis and technical content
+                  </div>
+                  <div className="text-xs mt-1" style={{ color: 'var(--logviewer-text-tertiary)' }}>
+                    Alternatives: llama3.2:3b (faster) or deepseek-r1:7b (reasoning)
                   </div>
                 </div>
               </div>
