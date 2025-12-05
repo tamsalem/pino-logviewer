@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown, Check } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -78,6 +78,7 @@ export default function LogToolbar(params: {
   const [confirmOpen, setConfirmOpen] = useState(false);
   // Removed API key UI per request
   const [ollamaDialogOpen, setOllamaDialogOpen] = useState(false);
+  const [levelFilterOpen, setLevelFilterOpen] = useState(false);
 
   // Debounce the search input
   useEffect(() => {
@@ -180,33 +181,83 @@ export default function LogToolbar(params: {
           </div>
 
           {/* Level Filter */}
-          <DropdownMenu>
+          <DropdownMenu open={levelFilterOpen} onOpenChange={setLevelFilterOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="text-gray-200 bg-gray-800 border-gray-700 hover:bg-gray-700">
                 Level {filterLevels.length < LOG_LEVEL_OPTIONS.length && `(${LOG_LEVEL_OPTIONS.length - filterLevels.length} hidden)`}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700 text-gray-200">
-              <DropdownMenuLabel>Filter by level</DropdownMenuLabel>
+            <DropdownMenuContent className="w-64 bg-gray-800 border-gray-700 text-gray-200">
+              <div className="flex items-center justify-between px-2 py-1.5">
+                <DropdownMenuLabel className="p-0">Filter by level</DropdownMenuLabel>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLevelFilterOpen(false)}
+                  className="h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
               <DropdownMenuSeparator className="bg-gray-700" />
-              {LOG_LEVEL_OPTIONS.map(opt => (
-                  <DropdownMenuCheckboxItem
+              
+              {/* Select All / Unselect All */}
+              <div className="px-2 py-1.5">
+                <button
+                  onClick={() => {
+                    const allSelected = filterLevels.length === LOG_LEVEL_OPTIONS.length;
+                    setFilterLevels(allSelected ? [] : LOG_LEVEL_OPTIONS.map(opt => opt.value));
+                  }}
+                  className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-gray-700 transition-colors"
+                >
+                  <div className={`w-4 h-4 border rounded flex items-center justify-center ${
+                    filterLevels.length === LOG_LEVEL_OPTIONS.length
+                      ? 'bg-indigo-600 border-indigo-600'
+                      : filterLevels.length > 0
+                      ? 'bg-indigo-600/50 border-indigo-600'
+                      : 'border-gray-600'
+                  }`}>
+                    {filterLevels.length > 0 && (
+                      <Check className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                  <span className="font-medium">
+                    {filterLevels.length === LOG_LEVEL_OPTIONS.length ? 'Unselect All' : 'Select All'}
+                  </span>
+                </button>
+              </div>
+              
+              <DropdownMenuSeparator className="bg-gray-700" />
+              
+              {/* Individual Level Checkboxes */}
+              <div className="px-2 py-1">
+                {LOG_LEVEL_OPTIONS.map(opt => {
+                  const isChecked = filterLevels.includes(opt.value);
+                  return (
+                    <button
                       key={opt.value}
-                      checked={filterLevels.includes(opt.value)}
-                      onCheckedChange={(checked) => {
+                      onClick={() => {
                         setFilterLevels(
-                            checked
-                                ? [...filterLevels, opt.value]
-                                : filterLevels.filter(level => level !== opt.value)
+                          isChecked
+                            ? filterLevels.filter(level => level !== opt.value)
+                            : [...filterLevels, opt.value]
                         );
                       }}
-                  >
-                    <div className="flex items-center gap-2">
+                      className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-gray-700 transition-colors"
+                    >
+                      <div className={`w-4 h-4 border rounded flex items-center justify-center ${
+                        isChecked ? 'bg-indigo-600 border-indigo-600' : 'border-gray-600'
+                      }`}>
+                        {isChecked && (
+                          <Check className="w-3 h-3 text-white" />
+                        )}
+                      </div>
                       <div className={`w-3 h-3 rounded-full ${opt.color}`} />
-                      {opt.label}
-                    </div>
-                  </DropdownMenuCheckboxItem>
-              ))}
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
 
