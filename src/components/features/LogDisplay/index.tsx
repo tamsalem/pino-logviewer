@@ -25,13 +25,12 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const filteredEntries = useMemo(() => {
     let filtered = [...entries];
 
-    // Level filter - now works as exclusion filter (show all except unchecked levels)
-    if (filterLevels.length > 0) {
-      filtered = filtered.filter(entry => {
-        const entryLevel = entry.level || 'NO_LEVEL';
-        return filterLevels.includes(entryLevel);
-      });
-    }
+    // Level filter - only show logs with selected levels
+    // If no levels are selected, show no logs
+    filtered = filtered.filter(entry => {
+      const entryLevel = entry.level || 'NO_LEVEL';
+      return filterLevels.includes(entryLevel);
+    });
 
     // Time range filter
     if (timeRange.start || timeRange.end) {
@@ -222,7 +221,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   }, [filteredEntries, fileName, incident]);
 
   return (
-    <div className="h-full flex flex-col bg-gray-900">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
       <LogToolbar
         fileName={fileName}
         onClear={onClear}
@@ -249,7 +248,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         onNavigateToPreviousSearch={navigateToPreviousSearch}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
-      <div className="flex-grow min-h-0 bg-gray-900">
+      <div className="flex-grow min-h-0" style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
         <LogListView
           entries={filteredEntries}
           selectedLogId={selectedLogId}

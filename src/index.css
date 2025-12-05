@@ -2,12 +2,176 @@
 @tailwind components;
 @tailwind utilities;
 
+/* VS Code-inspired Dark and Light Theme Variables */
+:root[data-theme="dark"] {
+  /* Background colors */
+  --logviewer-bg-primary: #1e1e1e;
+  --logviewer-bg-secondary: #252526;
+  --logviewer-bg-tertiary: #2d2d30;
+  --logviewer-bg-elevated: #3e3e42;
+  --logviewer-bg-hover: #2a2d2e;
+  --logviewer-bg-active: #37373d;
+  
+  /* Border colors */
+  --logviewer-border-primary: #3e3e42;
+  --logviewer-border-secondary: #454545;
+  --logviewer-border-focus: #007acc;
+  
+  /* Text colors */
+  --logviewer-text-primary: #cccccc;
+  --logviewer-text-secondary: #969696;
+  --logviewer-text-tertiary: #6a6a6a;
+  --logviewer-text-inverse: #ffffff;
+  
+  /* Accent colors */
+  --logviewer-accent-primary: #007acc;
+  --logviewer-accent-hover: #0098ff;
+  
+  /* Status colors */
+  --logviewer-error-bg: rgba(244, 67, 54, 0.1);
+  --logviewer-error-text: #f48771;
+  --logviewer-error-border: #f44336;
+  
+  --logviewer-warn-bg: rgba(255, 193, 7, 0.1);
+  --logviewer-warn-text: #ffd54f;
+  --logviewer-warn-border: #ffc107;
+  
+  --logviewer-info-bg: rgba(33, 150, 243, 0.1);
+  --logviewer-info-text: #75beff;
+  --logviewer-info-border: #2196f3;
+  
+  --logviewer-debug-bg: rgba(158, 158, 158, 0.1);
+  --logviewer-debug-text: #9e9e9e;
+  --logviewer-debug-border: #9e9e9e;
+  
+  --logviewer-no-level-bg: rgba(255, 255, 255, 0.1);
+  --logviewer-no-level-text: #ffffff;
+  --logviewer-no-level-border: #ffffff;
+  
+  /* Highlight colors - Chrome search style */
+  --logviewer-highlight-bg: rgba(255, 224, 130, 0.3);
+  --logviewer-highlight-current: rgba(255, 183, 77, 0.5);
+  --logviewer-highlight-text: inherit;
+  
+  /* Code/JSON colors */
+  --logviewer-code-string: #ce9178;
+  --logviewer-code-number: #b5cea8;
+  --logviewer-code-boolean: #569cd6;
+  --logviewer-code-null: #569cd6;
+  --logviewer-code-key: #9cdcfe;
+  --logviewer-code-bracket: #808080;
+}
+
+:root[data-theme="light"] {
+  /* Background colors */
+  --logviewer-bg-primary: #ffffff;
+  --logviewer-bg-secondary: #f3f3f3;
+  --logviewer-bg-tertiary: #e8e8e8;
+  --logviewer-bg-elevated: #ffffff;
+  --logviewer-bg-hover: #e8e8e8;
+  --logviewer-bg-active: #d4d4d4;
+  
+  /* Border colors */
+  --logviewer-border-primary: #d4d4d4;
+  --logviewer-border-secondary: #e0e0e0;
+  --logviewer-border-focus: #007acc;
+  
+  /* Text colors */
+  --logviewer-text-primary: #3b3b3b;
+  --logviewer-text-secondary: #616161;
+  --logviewer-text-tertiary: #8e8e8e;
+  --logviewer-text-inverse: #ffffff;
+  
+  /* Accent colors */
+  --logviewer-accent-primary: #007acc;
+  --logviewer-accent-hover: #005a9e;
+  
+  /* Status colors */
+  --logviewer-error-bg: rgba(244, 67, 54, 0.15);
+  --logviewer-error-text: #d32f2f;
+  --logviewer-error-border: #f44336;
+  
+  --logviewer-warn-bg: rgba(255, 152, 0, 0.15);
+  --logviewer-warn-text: #f57c00;
+  --logviewer-warn-border: #ff9800;
+  
+  --logviewer-info-bg: rgba(33, 150, 243, 0.15);
+  --logviewer-info-text: #1976d2;
+  --logviewer-info-border: #2196f3;
+  
+  --logviewer-debug-bg: rgba(117, 117, 117, 0.15);
+  --logviewer-debug-text: #616161;
+  --logviewer-debug-border: #757575;
+  
+  --logviewer-no-level-bg: rgba(97, 97, 97, 0.15);
+  --logviewer-no-level-text: #424242;
+  --logviewer-no-level-border: #616161;
+  
+  /* Highlight colors - Chrome search style */
+  --logviewer-highlight-bg: #fff9c4;
+  --logviewer-highlight-current: #ffecb3;
+  --logviewer-highlight-text: #1a1a1a;
+  
+  /* Code/JSON colors */
+  --logviewer-code-string: #a31515;
+  --logviewer-code-number: #098658;
+  --logviewer-code-boolean: #0000ff;
+  --logviewer-code-null: #0000ff;
+  --logviewer-code-key: #001080;
+  --logviewer-code-bracket: #808080;
+}
+
+/* Default to dark theme */
+:root {
+  --logviewer-bg-primary: #1e1e1e;
+  --logviewer-bg-secondary: #252526;
+  --logviewer-bg-tertiary: #2d2d30;
+  --logviewer-bg-elevated: #3e3e42;
+  --logviewer-bg-hover: #2a2d2e;
+  --logviewer-bg-active: #37373d;
+  --logviewer-border-primary: #3e3e42;
+  --logviewer-border-secondary: #454545;
+  --logviewer-border-focus: #007acc;
+  --logviewer-text-primary: #cccccc;
+  --logviewer-text-secondary: #969696;
+  --logviewer-text-tertiary: #6a6a6a;
+  --logviewer-text-inverse: #ffffff;
+  --logviewer-accent-primary: #007acc;
+  --logviewer-accent-hover: #0098ff;
+  --logviewer-error-bg: rgba(244, 67, 54, 0.1);
+  --logviewer-error-text: #f48771;
+  --logviewer-error-border: #f44336;
+  --logviewer-warn-bg: rgba(255, 193, 7, 0.1);
+  --logviewer-warn-text: #ffd54f;
+  --logviewer-warn-border: #ffc107;
+  --logviewer-info-bg: rgba(33, 150, 243, 0.1);
+  --logviewer-info-text: #75beff;
+  --logviewer-info-border: #2196f3;
+  --logviewer-debug-bg: rgba(158, 158, 158, 0.1);
+  --logviewer-debug-text: #9e9e9e;
+  --logviewer-debug-border: #9e9e9e;
+  --logviewer-no-level-bg: rgba(255, 255, 255, 0.1);
+  --logviewer-no-level-text: #ffffff;
+  --logviewer-no-level-border: #ffffff;
+  --logviewer-highlight-bg: rgba(255, 224, 130, 0.3);
+  --logviewer-highlight-current: rgba(255, 183, 77, 0.5);
+  --logviewer-highlight-text: inherit;
+  --logviewer-code-string: #ce9178;
+  --logviewer-code-number: #b5cea8;
+  --logviewer-code-boolean: #569cd6;
+  --logviewer-code-null: #569cd6;
+  --logviewer-code-key: #9cdcfe;
+  --logviewer-code-bracket: #808080;
+}
+
 body {
   margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--logviewer-bg-primary);
+  color: var(--logviewer-text-primary);
 }
 
 #app {

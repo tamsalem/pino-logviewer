@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { Button, Card, Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { type IncidentAnalysis } from '../../../services'
 
 export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, llmLoading }: { open: boolean, onClose: () => void, analysis: IncidentAnalysis | null, llmAvailable?: 'none' | 'gemini' | 'ollama' | 'any', llmLoading?: boolean }) {
@@ -7,6 +8,18 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
   const dragRef = useRef<HTMLDivElement | null>(null)
   const startXRef = useRef<number>(0)
   const startWidthRef = useRef<number>(520)
+  
+  // Section collapse states
+  const [sectionsExpanded, setSectionsExpanded] = useState({
+    aiSummary: true,
+    errorCategories: true,
+    timeline: true,
+    errorSignatures: true,
+  })
+
+  const toggleSection = (section: keyof typeof sectionsExpanded) => {
+    setSectionsExpanded(prev => ({ ...prev, [section]: !prev[section] }))
+  }
 
   useEffect(() => {
     const el = dragRef.current
@@ -46,7 +59,6 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
   const a = analysis
 
   const sanitizeLLMHtml = (html: string) => {
-    // basic sanitization: strip script/style and on* handlers
     try {
       const div = document.createElement('div')
       div.innerHTML = html
@@ -63,16 +75,60 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
       return html
     }
   }
+
+  const SectionHeader = ({ title, isExpanded, onToggle, count }: { title: string, isExpanded: boolean, onToggle: () => void, count?: number }) => (
+    <button
+      onClick={onToggle}
+      className="flex items-center justify-between w-full p-3 rounded transition-colors"
+      style={{ 
+        backgroundColor: 'var(--logviewer-bg-secondary)',
+        borderBottom: `1px solid var(--logviewer-border-primary)`
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-hover)'}
+      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-secondary)'}
+    >
+      <div className="flex items-center gap-2">
+        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <span className="font-medium" style={{ color: 'var(--logviewer-text-primary)' }}>{title}</span>
+        {count !== undefined && <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--logviewer-bg-tertiary)', color: 'var(--logviewer-text-secondary)' }}>{count}</span>}
+      </div>
+    </button>
+  )
+
   return (
     <div className="fixed inset-0 z-40">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full bg-gray-900 border-l border-gray-700 shadow-2xl p-5 overflow-auto" style={{ width }}>
-        <div ref={dragRef} className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-gray-600/40 z-50" />
+      <div 
+        className="absolute right-0 top-0 h-full border-l shadow-2xl p-5 overflow-auto" 
+        style={{ 
+          width, 
+          backgroundColor: 'var(--logviewer-bg-primary)', 
+          borderColor: 'var(--logviewer-border-primary)' 
+        }}
+      >
+        <div 
+          ref={dragRef} 
+          className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-transparent z-50"
+          style={{ backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--logviewer-border-secondary)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        />
+        
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-200">Incident Explainer</h2>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white" onClick={onClose}>Close</Button>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--logviewer-text-primary)' }}>Incident Explainer</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose}
+            style={{ color: 'var(--logviewer-text-secondary)' }}
+          >
+            Close
+          </Button>
         </div>
-        <div className="mb-3 text-xs text-gray-400 flex items-center gap-2">
+
+        {/* LLM Status */}
+        <div className="mb-4 text-xs flex items-center gap-2" style={{ color: 'var(--logviewer-text-secondary)' }}>
           {llmAvailable === 'ollama' ? (
             <span>Local LLM (Ollama) connected.</span>
           ) : (
@@ -80,108 +136,236 @@ export default function IncidentDrawer({ open, onClose, analysis, llmAvailable, 
               <span>No local LLM detected. Falling back to heuristic summary.</span>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-gray-300 bg-gray-800 border-gray-700 hover:bg-gray-700">How to enable</Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border"
+                    style={{
+                      color: 'var(--logviewer-text-primary)',
+                      backgroundColor: 'var(--logviewer-bg-secondary)',
+                      borderColor: 'var(--logviewer-border-primary)'
+                    }}
+                  >
+                    How to enable
+                  </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[520px] bg-gray-800 border border-gray-700 shadow-xl rounded-md p-4" align="start">
+                <PopoverContent 
+                  className="w-[520px] shadow-xl rounded-md p-4 border" 
+                  align="start"
+                  style={{
+                    backgroundColor: 'var(--logviewer-bg-elevated)',
+                    borderColor: 'var(--logviewer-border-primary)'
+                  }}
+                >
                   <div className="space-y-3">
-                    <div className="text-sm text-gray-300 font-medium">Run a local LLM with Ollama (macOS)</div>
+                    <div className="text-sm font-medium" style={{ color: 'var(--logviewer-text-primary)' }}>Run a local LLM with Ollama (macOS)</div>
                     <div>
-                      <div className="text-xs text-gray-400 mb-1">1) Install Ollama</div>
-                      <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">brew install ollama</pre>
+                      <div className="text-xs mb-1" style={{ color: 'var(--logviewer-text-secondary)' }}>1) Install Ollama</div>
+                      <pre 
+                        className="text-xs p-2 rounded border overflow-x-auto"
+                        style={{
+                          backgroundColor: 'var(--logviewer-bg-primary)',
+                          color: 'var(--logviewer-text-primary)',
+                          borderColor: 'var(--logviewer-border-primary)'
+                        }}
+                      >
+                        brew install ollama
+                      </pre>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400 mb-1">2) Start the server</div>
-                      <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama serve</pre>
+                      <div className="text-xs mb-1" style={{ color: 'var(--logviewer-text-secondary)' }}>2) Start the server</div>
+                      <pre 
+                        className="text-xs p-2 rounded border overflow-x-auto"
+                        style={{
+                          backgroundColor: 'var(--logviewer-bg-primary)',
+                          color: 'var(--logviewer-text-primary)',
+                          borderColor: 'var(--logviewer-border-primary)'
+                        }}
+                      >
+                        ollama serve
+                      </pre>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400 mb-1">3) Pull a model (first time)</div>
-                      <pre className="bg-gray-900 text-gray-200 text-xs p-2 rounded border border-gray-700 overflow-x-auto">ollama pull llama3.1:8b</pre>
+                      <div className="text-xs mb-1" style={{ color: 'var(--logviewer-text-secondary)' }}>3) Pull a recommended model</div>
+                      <pre
+                        className="text-xs p-2 rounded border overflow-x-auto"
+                        style={{
+                          backgroundColor: 'var(--logviewer-bg-primary)',
+                          color: 'var(--logviewer-text-primary)',
+                          borderColor: 'var(--logviewer-border-primary)'
+                        }}
+                      >
+                        ollama pull qwen2.5:7b
+                      </pre>
+                      <div className="text-xs mt-2 p-2 rounded" style={{ backgroundColor: 'var(--logviewer-info-bg)', color: 'var(--logviewer-info-text)' }}>
+                        <strong>Recommended:</strong> qwen2.5:7b - Excellent for log analysis and technical content
+                      </div>
+                      <div className="text-xs mt-1" style={{ color: 'var(--logviewer-text-tertiary)' }}>
+                        Alternatives: llama3.2:3b (faster, smaller) or deepseek-r1:7b (reasoning-focused)
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500">Once running at http://localhost:11434, the app will use it automatically.</div>
+                    <div className="text-xs" style={{ color: 'var(--logviewer-text-tertiary)' }}>Once running at http://localhost:11434, the app will use it automatically.</div>
                   </div>
                 </PopoverContent>
               </Popover>
             </>
           )}
         </div>
+
         {!a ? (
-          <div className="text-gray-400">No analysis available.</div>
+          <div style={{ color: 'var(--logviewer-text-secondary)' }}>No analysis available.</div>
         ) : (
-          <div className="space-y-6">
-            <div>
-              <div className="text-sm text-gray-400">Summary</div>
-              <div className="mt-1 text-gray-200">{a.summary}</div>
+          <div className="space-y-4">
+            {/* Summary - Always Visible */}
+            <div 
+              className="p-4 rounded border"
+              style={{
+                backgroundColor: 'var(--logviewer-bg-secondary)',
+                borderColor: 'var(--logviewer-border-primary)'
+              }}
+            >
+              <div className="text-sm font-medium mb-2" style={{ color: 'var(--logviewer-text-secondary)' }}>Summary</div>
+              <div style={{ color: 'var(--logviewer-text-primary)' }}>{a.summary}</div>
               {a.clusters[0] && (
-                <div className="mt-3 text-xs text-gray-500 bg-gray-800/60 border border-gray-700 rounded p-3">
-                  <div className="font-medium text-gray-300 mb-2">Top pattern</div>
-                  <pre className="font-mono text-xs md:text-sm text-gray-200 whitespace-pre-wrap break-words overflow-x-auto">{a.clusters[0].sample}</pre>
+                <div 
+                  className="mt-3 text-xs rounded p-3 border"
+                  style={{
+                    backgroundColor: 'var(--logviewer-bg-tertiary)',
+                    borderColor: 'var(--logviewer-border-primary)'
+                  }}
+                >
+                  <div className="font-medium mb-2" style={{ color: 'var(--logviewer-text-primary)' }}>Top pattern</div>
+                  <pre className="font-mono text-xs whitespace-pre-wrap break-words overflow-x-auto" style={{ color: 'var(--logviewer-text-primary)' }}>{a.clusters[0].sample}</pre>
                 </div>
               )}
             </div>
-            {llmLoading && (
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <div className="animate-pulse w-2 h-2 rounded-full bg-indigo-400" />
-                Generating AI summary...
-              </div>
-            )}
-            {a.llmSummary && !llmLoading && (
+
+            {/* AI Summary Section - Only if loading or has data */}
+            {(llmLoading || (a.llmSummary && !llmLoading)) && (
               <div>
-                <div className="text-sm text-gray-400">AI Summary</div>
-                <div className="mt-1 text-gray-200 prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeLLMHtml(a.llmSummary) }} />
+                <SectionHeader 
+                  title="AI Summary" 
+                  isExpanded={sectionsExpanded.aiSummary} 
+                  onToggle={() => toggleSection('aiSummary')}
+                />
+                {sectionsExpanded.aiSummary && (
+                  <div className="p-4" style={{ backgroundColor: 'var(--logviewer-bg-secondary)' }}>
+                    {llmLoading ? (
+                      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--logviewer-text-secondary)' }}>
+                        <div className="animate-pulse w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--logviewer-accent-primary)' }} />
+                        Generating AI summary...
+                      </div>
+                    ) : (
+                      <div className="prose prose-invert max-w-none" style={{ color: 'var(--logviewer-text-primary)' }} dangerouslySetInnerHTML={{ __html: sanitizeLLMHtml(a.llmSummary!) }} />
+                    )}
+                  </div>
+                )}
               </div>
             )}
-            <div>
-              <div className="text-sm text-gray-400 mb-2">Error Categories</div>
-              <div className="space-y-2">
-                {a.categories.slice(0, 5).map((cat, i) => (
-                  <div key={i} className="bg-gray-800/60 border border-gray-700 rounded p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-sm font-medium ${
-                        cat.category.priority <= 3 ? 'text-red-300' :
-                        cat.category.priority <= 6 ? 'text-yellow-300' :
-                        'text-gray-300'
-                      }`}>
-                        {cat.category.name}
-                      </span>
-                      <span className="text-xs text-gray-400">{cat.count} ({cat.percentage}%)</span>
-                    </div>
-                    <div className="text-xs text-gray-500">{cat.category.description}</div>
+
+            {/* Error Categories Section - Only if has data */}
+            {a.categories.length > 0 && (
+              <div>
+                <SectionHeader 
+                  title="Error Categories" 
+                  isExpanded={sectionsExpanded.errorCategories} 
+                  onToggle={() => toggleSection('errorCategories')}
+                  count={a.categories.length}
+                />
+                {sectionsExpanded.errorCategories && (
+                  <div className="p-4 space-y-2" style={{ backgroundColor: 'var(--logviewer-bg-secondary)' }}>
+                    {a.categories.slice(0, 5).map((cat, i) => (
+                      <div 
+                        key={i} 
+                        className="rounded p-3 border"
+                        style={{
+                          backgroundColor: 'var(--logviewer-bg-tertiary)',
+                          borderColor: 'var(--logviewer-border-primary)'
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium" style={{
+                            color: cat.category.priority <= 3 ? 'var(--logviewer-error-text)' :
+                                   cat.category.priority <= 6 ? 'var(--logviewer-warn-text)' :
+                                   'var(--logviewer-text-primary)'
+                          }}>
+                            {cat.category.name}
+                          </span>
+                          <span className="text-xs" style={{ color: 'var(--logviewer-text-secondary)' }}>{cat.count} ({cat.percentage}%)</span>
+                        </div>
+                        <div className="text-xs" style={{ color: 'var(--logviewer-text-tertiary)' }}>{cat.category.description}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                {a.categories.length === 0 && <div className="text-gray-500 text-sm">No categories detected</div>}
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-400">Timeline</div>
-              <div className="mt-2 h-16 flex items-end gap-1">
-                {a.spikes.length === 0 && (
-                  <div className="text-gray-500 text-sm">No distinct spike detected</div>
                 )}
-                {a.spikes.map((s, i) => (
-                  <div key={i} className="bg-indigo-600/60 hover:bg-indigo-500 transition-colors" style={{ height: Math.min(56, 10 + Math.log2(2 + s.count) * 12), width: 16 }} title={`${new Date(s.start).toLocaleString()} - ${new Date(s.end).toLocaleString()} (${s.count})`} />
-                ))}
               </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-400 mb-2">Top error signatures</div>
-              <div className="space-y-2">
-                {a.clusters.map((c, i) => (
-                  <div key={i} className="bg-gray-800/60 border border-gray-700 rounded p-3">
-                    <pre className="font-mono text-xs md:text-sm text-gray-200 whitespace-pre-wrap break-words overflow-x-auto" title={c.sample}>
-{c.sample}
-                    </pre>
-                    <div className="text-xs text-gray-400 mt-2">Count: {c.count}</div>
+            )}
+
+            {/* Timeline Section - Only if has data */}
+            {a.spikes.length > 0 && (
+              <div>
+                <SectionHeader 
+                  title="Timeline" 
+                  isExpanded={sectionsExpanded.timeline} 
+                  onToggle={() => toggleSection('timeline')}
+                  count={a.spikes.length}
+                />
+                {sectionsExpanded.timeline && (
+                  <div className="p-4" style={{ backgroundColor: 'var(--logviewer-bg-secondary)' }}>
+                    <div className="h-16 flex items-end gap-1">
+                      {a.spikes.map((s, i) => (
+                        <div 
+                          key={i} 
+                          className="transition-colors" 
+                          style={{ 
+                            height: Math.min(56, 10 + Math.log2(2 + s.count) * 12), 
+                            width: 16,
+                            backgroundColor: 'var(--logviewer-accent-primary)'
+                          }} 
+                          title={`${new Date(s.start).toLocaleString()} - ${new Date(s.end).toLocaleString()} (${s.count})`}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--logviewer-accent-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--logviewer-accent-primary)'}
+                        />
+                      ))}
+                    </div>
                   </div>
-                ))}
-                {a.clusters.length === 0 && <div className="text-gray-500 text-sm">No dominant patterns</div>}
+                )}
               </div>
-            </div>
-            {/* Impact removed */}
+            )}
+
+            {/* Error Signatures Section - Only if has data */}
+            {a.clusters.length > 0 && (
+              <div>
+                <SectionHeader 
+                  title="Top Error Signatures" 
+                  isExpanded={sectionsExpanded.errorSignatures} 
+                  onToggle={() => toggleSection('errorSignatures')}
+                  count={a.clusters.length}
+                />
+                {sectionsExpanded.errorSignatures && (
+                  <div className="p-4 space-y-2" style={{ backgroundColor: 'var(--logviewer-bg-secondary)' }}>
+                    {a.clusters.map((c, i) => (
+                      <div 
+                        key={i} 
+                        className="rounded p-3 border"
+                        style={{
+                          backgroundColor: 'var(--logviewer-bg-tertiary)',
+                          borderColor: 'var(--logviewer-border-primary)'
+                        }}
+                      >
+                        <pre className="font-mono text-xs whitespace-pre-wrap break-words overflow-x-auto" title={c.sample} style={{ color: 'var(--logviewer-text-primary)' }}>
+{c.sample}
+                        </pre>
+                        <div className="text-xs mt-2" style={{ color: 'var(--logviewer-text-secondary)' }}>Count: {c.count}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
     </div>
   )
 }
-
-
