@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Toaster } from '../components/ui';
 
 import { LogDisplay, WelcomeScreen, HistoryScreen, Layout } from './components';
 import { LogEntry } from './types';
@@ -47,7 +48,9 @@ export default function LogViewerPage() {
   }, [handleFileUpload]);
 
   return (
-    <Layout onFileUpload={handleFileUpload} onShowHistory={handleShowHistory}>
+    <>
+      <Toaster />
+      <Layout onFileUpload={handleFileUpload} onShowHistory={handleShowHistory}>
       <div className="flex flex-col" style={{ height: '100%', backgroundColor: 'var(--logviewer-bg-primary)' }}>
         <AnimatePresence mode="wait">
           {currentScreen === 'history' ? (
@@ -93,6 +96,7 @@ export default function LogViewerPage() {
           )}
         </AnimatePresence>
       </div>
-    </Layout>
+      </Layout>
+    </>
   );
 }

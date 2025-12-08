@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Copy, ExternalLink, Bookmark } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, Bookmark } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../../../../components/ui';
 import { LogLevel, type LogEntry as LogEntryType } from '../../../types';
 
@@ -119,9 +120,11 @@ const formatTime = (timestamp:string, isCompactView: boolean) => {
         });
   };
 
-const handleCopyToClipboard = (text: string) => {
+const handleCopyToClipboard = (text: string, label: string = 'Content') => {
     navigator.clipboard.writeText(text).then(() => {
-      // Could add a toast notification here
+      toast.success(`${label} copied to clipboard`);
+    }).catch(() => {
+      toast.error('Failed to copy to clipboard');
     });
 };
 
@@ -277,24 +280,24 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
               >
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-medium" style={{ color: 'var(--logviewer-text-primary)' }}>Log Details</h4>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyToClipboard(entry.raw)}
-                      style={{ color: 'var(--logviewer-text-secondary)' }}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyToClipboard(JSON.stringify(entry.data, null, 2))}
-                      style={{ color: 'var(--logviewer-text-secondary)' }}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyToClipboard(entry.raw, 'Raw log')}
+                    className="transition-colors"
+                    style={{ color: 'var(--logviewer-text-secondary)' }}
+                    title="Copy raw log"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-hover)';
+                      e.currentTarget.style.color = 'var(--logviewer-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'var(--logviewer-text-secondary)';
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
                 </div>
 
                 <div 
