@@ -107,10 +107,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Code guidelines
 - Build instructions
 
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/tamsalem/pino-logviewer/issues)
