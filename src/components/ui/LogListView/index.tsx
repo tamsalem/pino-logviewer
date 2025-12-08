@@ -2,8 +2,8 @@ import { useEffect, useCallback } from 'react';
 import LogEntry from '../LogEntry';
 import { type LogEntry as LogEntryType } from '../../../types';
 
-export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern, searchResults, currentSearchIndex } :
-    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null, searchResults?: { entryId: number; index: number }[], currentSearchIndex?: number }
+export default function LogListView({ entries, selectedLogId, onSelectLog, onKeyNavigation, scrollContainerRef, isCompactView, searchPattern, searchResults, currentSearchIndex, bookmarkedLogIds, onToggleBookmark } :
+    { entries: LogEntryType[], selectedLogId: number| null, onSelectLog: (index:number) => void, onKeyNavigation: (_:any) => void, scrollContainerRef: any, isCompactView: boolean, searchPattern: RegExp | null, searchResults?: { entryId: number; index: number }[], currentSearchIndex?: number, bookmarkedLogIds?: Set<number>, onToggleBookmark?: (logId: number) => void }
 ) {
   // Handle keyboard navigation
   useEffect(() => {
@@ -90,6 +90,8 @@ export default function LogListView({ entries, selectedLogId, onSelectLog, onKey
               searchPattern={searchPattern}
               hasSearchMatch={hasSearchMatch}
               isCurrentSearchResult={isCurrentSearchResult}
+              isBookmarked={bookmarkedLogIds?.has(entry.id)}
+              onToggleBookmark={onToggleBookmark}
             />
           );
         })}

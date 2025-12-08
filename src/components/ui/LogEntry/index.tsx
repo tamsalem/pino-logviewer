@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Copy, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, ExternalLink, Bookmark } from 'lucide-react';
 import { Button } from '../../../../components/ui';
 import { LogLevel, type LogEntry as LogEntryType } from '../../../types';
 
@@ -158,8 +158,8 @@ const highlightText = (text: string, pattern: RegExp | null) => {
   return <>{segments}</>;
 };
 
-export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern, hasSearchMatch, isCurrentSearchResult }: 
-    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null, hasSearchMatch?: boolean, isCurrentSearchResult?: boolean }) {
+export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onClick, isCompactView, searchPattern, hasSearchMatch, isCurrentSearchResult, isBookmarked, onToggleBookmark }:
+    { entry: LogEntryType, isSelected: boolean, isExpanded: boolean, onClick: (_:any) => void, isCompactView: boolean, searchPattern: RegExp | null, hasSearchMatch?: boolean, isCurrentSearchResult?: boolean, isBookmarked?: boolean, onToggleBookmark?: (logId: number) => void }) {
   const levelName = entry.level || 'NO_LEVEL';
   const levelStyles = getLevelStyles(levelName);
 
@@ -204,8 +204,8 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
         }
       }}
     >
-      <div className={`flex items-center px-4 cursor-pointer select-none ${isCompactView ? 'py-1' : 'py-2'}`} onClick={onClick}>
-        <div className="flex items-center mr-3" style={{ color: 'var(--logviewer-text-secondary)' }}>
+      <div className={`flex items-center px-4 select-none ${isCompactView ? 'py-1' : 'py-2'}`}>
+        <div className="flex items-center mr-3 cursor-pointer" style={{ color: 'var(--logviewer-text-secondary)' }} onClick={onClick}>
           {isExpanded ? (
             <ChevronDown className="w-4 h-4" />
           ) : (
@@ -213,7 +213,7 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
           )}
         </div>
         
-        <div className="flex items-center gap-4 flex-grow min-w-0">
+        <div className="flex items-center gap-4 flex-grow min-w-0 cursor-pointer" onClick={onClick}>
           <span 
             className="px-2 py-1 text-xs font-bold rounded flex-shrink-0"
             style={{
@@ -231,13 +231,31 @@ export default React.memo(function LogEntry({ entry, isSelected, isExpanded, onC
             {formatTime(entry.timestamp, isCompactView)}
           </span>
           
-          <span 
+          <span
             className={`flex-grow truncate font-mono ${isCompactView ? 'text-xs' : 'text-sm'}`}
             style={{ color: 'var(--logviewer-text-primary)' }}
           >
             {highlightText(entry.message || 'No message', searchPattern)}
           </span>
         </div>
+        
+        {/* Bookmark Button */}
+        {onToggleBookmark && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleBookmark(entry.id);
+            }}
+            className="ml-2"
+            style={{
+              color: isBookmarked ? 'var(--logviewer-accent-primary)' : 'var(--logviewer-text-secondary)',
+            }}
+          >
+            <Bookmark className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} />
+          </Button>
+        )}
       </div>
 
       <AnimatePresence>

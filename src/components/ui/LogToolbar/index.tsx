@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown, Check, Filter, Keyboard } from 'lucide-react';
+import { X, File, Search, Calendar, ArrowDownUp, BarChart3, Circle, Download, ChevronUp, ChevronDown, Check, Filter, Keyboard, ListFilter, Bookmark } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +23,7 @@ import {
 import { Sparkles } from 'lucide-react';
 import { exportToCSV, exportToJSON, type LogEntry, type ExportOptions } from '../../../utils';
 import { LOG_LEVEL_OPTIONS, SEARCH_DEBOUNCE_DELAY, KEYBOARD_SHORTCUTS } from '../../../constants';
+import { Switch } from '../../../../components/ui';
 
 export default function LogToolbar(params: {
   fileName: string,
@@ -48,6 +49,12 @@ export default function LogToolbar(params: {
   currentSearchIndex?: number,
   onNavigateToNextSearch?: () => void,
   onNavigateToPreviousSearch?: () => void,
+  searchMode?: 'highlight' | 'filter',
+  setSearchMode?: (mode: 'highlight' | 'filter') => void,
+  bookmarkedCount?: number,
+  currentBookmarkIndex?: number,
+  onNavigateToNextBookmark?: () => void,
+  onNavigateToPreviousBookmark?: () => void,
 }) {
   const {
     fileName,
@@ -73,6 +80,12 @@ export default function LogToolbar(params: {
     currentSearchIndex = 0,
     onNavigateToNextSearch,
     onNavigateToPreviousSearch,
+    searchMode = 'highlight',
+    setSearchMode,
+    bookmarkedCount = 0,
+    currentBookmarkIndex = 0,
+    onNavigateToNextBookmark,
+    onNavigateToPreviousBookmark,
   } = params
   const [inputValue, setInputValue] = useState(searchQuery);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -83,13 +96,22 @@ export default function LogToolbar(params: {
   // Debounce the search input
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Store the current active element before updating search
+      const activeElement = document.activeElement;
       setSearchQuery(inputValue);
+      
+      // Restore focus to search input if it was focused
+      if (activeElement === searchInputRef?.current) {
+        requestAnimationFrame(() => {
+          searchInputRef?.current?.focus();
+        });
+      }
     }, SEARCH_DEBOUNCE_DELAY);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [inputValue, setSearchQuery]);
+  }, [inputValue, setSearchQuery, searchInputRef]);
 
   // Sync the input value if the search query is cleared externally
   useEffect(() => {
@@ -151,7 +173,7 @@ export default function LogToolbar(params: {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--logviewer-text-secondary)' }} />
             <Input
                 type="text"
-                placeholder="Search logs (supports regex)..."
+                placeholder={searchMode === 'filter' ? "Filter logs (supports regex)..." : "Search logs (supports regex)..."}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 className="pl-9 pr-20"
@@ -162,7 +184,7 @@ export default function LogToolbar(params: {
                 }}
                 ref={searchInputRef as any}
             />
-            {searchQuery && searchResults.length > 0 && (
+            {searchQuery && searchMode === 'highlight' && searchResults.length > 0 && (
               <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <span className="text-xs px-2" style={{ color: 'var(--logviewer-text-secondary)' }}>
                   {currentSearchIndex + 1} of {searchResults.length}
@@ -220,6 +242,36 @@ export default function LogToolbar(params: {
               </div>
             )}
           </div>
+
+          {/* Search Mode Toggle */}
+          {setSearchMode && (
+            <div className="flex items-center gap-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--logviewer-bg-tertiary)' }}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <ListFilter className="w-4 h-4" style={{ color: 'var(--logviewer-text-secondary)' }} />
+                    <Switch
+                      checked={searchMode === 'filter'}
+                      onCheckedChange={(checked) => setSearchMode(checked ? 'filter' : 'highlight')}
+                    />
+                    <span className="text-xs font-medium" style={{ color: 'var(--logviewer-text-secondary)' }}>
+                      {searchMode === 'filter' ? 'Filter' : 'Highlight'}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="px-2 py-1 text-xs rounded"
+                  style={{
+                    backgroundColor: 'var(--logviewer-bg-elevated)',
+                    color: 'var(--logviewer-text-primary)',
+                    border: `1px solid var(--logviewer-border-primary)`
+                  }}
+                >
+                  <p>{searchMode === 'filter' ? 'Filter mode: Show only matching logs' : 'Highlight mode: Highlight matches in all logs'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
 
           {/* Filters Group */}
           <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'var(--logviewer-bg-tertiary)' }}>
@@ -538,6 +590,66 @@ export default function LogToolbar(params: {
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Bookmark Navigation */}
+          {bookmarkedCount > 0 && onNavigateToNextBookmark && onNavigateToPreviousBookmark && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'var(--logviewer-bg-tertiary)' }}>
+              <Bookmark className="w-4 h-4" style={{ color: 'var(--logviewer-accent-primary)' }} fill="currentColor" />
+              <span className="text-xs px-2" style={{ color: 'var(--logviewer-text-secondary)' }}>
+                {currentBookmarkIndex + 1} of {bookmarkedCount}
+              </span>
+              <div className="flex flex-col">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onNavigateToPreviousBookmark}
+                      className="h-3 w-6 p-0"
+                      style={{ color: 'var(--logviewer-text-secondary)' }}
+                      disabled={bookmarkedCount === 0}
+                    >
+                      <ChevronUp className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="px-2 py-1 text-xs rounded"
+                    style={{
+                      backgroundColor: 'var(--logviewer-bg-elevated)',
+                      color: 'var(--logviewer-text-primary)',
+                      border: `1px solid var(--logviewer-border-primary)`
+                    }}
+                  >
+                    <p>Previous bookmark</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onNavigateToNextBookmark}
+                      className="h-3 w-6 p-0"
+                      style={{ color: 'var(--logviewer-text-secondary)' }}
+                      disabled={bookmarkedCount === 0}
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="px-2 py-1 text-xs rounded"
+                    style={{
+                      backgroundColor: 'var(--logviewer-bg-elevated)',
+                      color: 'var(--logviewer-text-primary)',
+                      border: `1px solid var(--logviewer-border-primary)`
+                    }}
+                  >
+                    <p>Next bookmark</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          )}
 
           {/* Keyboard Shortcuts */}
             <Popover open={keyboardShortcutsOpen} onOpenChange={setKeyboardShortcutsOpen}>

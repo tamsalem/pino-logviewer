@@ -10,8 +10,11 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const [filterLevels, setFilterLevels] = useState<string[]>(DEFAULT_FILTER_LEVELS);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<'highlight' | 'filter'>('highlight');
   const [timeRange, setTimeRange] = useState<{start?: Date; end?: Date}>({});
   const [sortOrder, setSortOrder] = useState('asc'); // 'desc' or 'asc'
+  const [bookmarkedLogIds, setBookmarkedLogIds] = useState<Set<number>>(new Set());
+  const [currentBookmarkIndex, setCurrentBookmarkIndex] = useState(0);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [incident, setIncident] = useState<IncidentAnalysis | null>(null);
@@ -46,6 +49,17 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
       });
     }
 
+    // Search filter - only apply when in filter mode
+    if (searchQuery && searchMode === 'filter') {
+      try {
+        const regex = new RegExp(searchQuery, 'gi');
+        filtered = filtered.filter(entry => regex.test(entry.raw));
+      } catch {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(entry => entry.raw.toLowerCase().includes(query));
+      }
+    }
+
     // Sorting
     filtered.sort((a, b) => {
       const aTime = new Date(a.timestamp).getTime()
@@ -54,11 +68,11 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     });
 
     return filtered;
-  }, [entries, filterLevels, timeRange, sortOrder]);
+  }, [entries, filterLevels, timeRange, sortOrder, searchQuery, searchMode]);
 
-  // Find search results and track their positions
+  // Find search results and track their positions (only for highlight mode)
   const searchResults = useMemo(() => {
-    if (!searchQuery) return [];
+    if (!searchQuery || searchMode === 'filter') return [];
     
     const results: { entryId: number; index: number }[] = [];
     let globalIndex = 0;
@@ -96,7 +110,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   }, [searchQuery]);
 
   const searchPattern = useMemo(() => {
-    if (!searchQuery) return null as RegExp | null;
+    if (!searchQuery || searchMode === 'filter') return null as RegExp | null;
     try {
       return new RegExp(searchQuery, 'gi');
     } catch {
@@ -146,6 +160,47 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     const targetEntry = searchResults[prevIndex];
     setSelectedLogId(targetEntry.entryId);
   }, [searchResults, currentSearchIndex]);
+
+  // Bookmark management
+  const toggleBookmark = useCallback((logId: number) => {
+    setBookmarkedLogIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(logId)) {
+        newSet.delete(logId);
+      } else {
+        newSet.add(logId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Get bookmarked entries in order
+  const bookmarkedEntries = useMemo(() => {
+    return filteredEntries.filter(entry => bookmarkedLogIds.has(entry.id));
+  }, [filteredEntries, bookmarkedLogIds]);
+
+  // Navigate to next bookmark
+  const navigateToNextBookmark = useCallback(() => {
+    if (bookmarkedEntries.length === 0) return;
+    const nextIndex = (currentBookmarkIndex + 1) % bookmarkedEntries.length;
+    setCurrentBookmarkIndex(nextIndex);
+    setSelectedLogId(bookmarkedEntries[nextIndex].id);
+  }, [bookmarkedEntries, currentBookmarkIndex]);
+
+  // Navigate to previous bookmark
+  const navigateToPreviousBookmark = useCallback(() => {
+    if (bookmarkedEntries.length === 0) return;
+    const prevIndex = currentBookmarkIndex === 0 ? bookmarkedEntries.length - 1 : currentBookmarkIndex - 1;
+    setCurrentBookmarkIndex(prevIndex);
+    setSelectedLogId(bookmarkedEntries[prevIndex].id);
+  }, [bookmarkedEntries, currentBookmarkIndex]);
+
+  // Reset bookmark index when bookmarks change
+  useEffect(() => {
+    if (bookmarkedEntries.length > 0 && currentBookmarkIndex >= bookmarkedEntries.length) {
+      setCurrentBookmarkIndex(0);
+    }
+  }, [bookmarkedEntries.length, currentBookmarkIndex]);
 
   // Global shortcuts: Cmd/Ctrl+F focuses search; F3/Shift+F3 for search navigation; Enter for next search; PageUp/PageDown scrolls to top/bottom
   useEffect(() => {
@@ -256,6 +311,12 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         currentSearchIndex={currentSearchIndex}
         onNavigateToNextSearch={navigateToNextSearch}
         onNavigateToPreviousSearch={navigateToPreviousSearch}
+        searchMode={searchMode}
+        setSearchMode={setSearchMode}
+        bookmarkedCount={bookmarkedLogIds.size}
+        currentBookmarkIndex={currentBookmarkIndex}
+        onNavigateToNextBookmark={navigateToNextBookmark}
+        onNavigateToPreviousBookmark={navigateToPreviousBookmark}
       />
       {isDashboardVisible && <LogDashboard entries={filteredEntries} />}
       <div className="flex-grow min-h-0" style={{ backgroundColor: 'var(--logviewer-bg-primary)' }}>
@@ -269,6 +330,8 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
           searchPattern={searchPattern}
           searchResults={searchResults}
           currentSearchIndex={currentSearchIndex}
+          bookmarkedLogIds={bookmarkedLogIds}
+          onToggleBookmark={toggleBookmark}
         />
       </div>
       <IncidentDrawer open={isIncidentOpen} onClose={() => setIsIncidentOpen(false)} analysis={incident} llmAvailable={llmAvailable} llmLoading={llmLoading} />
