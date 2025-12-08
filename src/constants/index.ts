@@ -52,3 +52,23 @@ export const DEFAULT_FILTER_LEVELS = [
   LOG_LEVELS.DEBUG,
   LOG_LEVELS.NO_LEVEL,
 ];
+
+// Keyboard shortcuts
+export const KEYBOARD_SHORTCUTS = [
+  {
+    category: 'Search',
+    shortcuts: [
+      { keys: ['Cmd/Ctrl', 'F'], description: 'Focus search input' },
+      { keys: ['Enter'], description: 'Next search result' },
+      { keys: ['F3'], description: 'Next search result' },
+      { keys: ['Shift', 'F3'], description: 'Previous search result' },
+    ],
+  },
+  {
+    category: 'Navigation',
+    shortcuts: [
+      { keys: ['PageUp'], description: 'Scroll to top' },
+      { keys: ['PageDown'], description: 'Scroll to bottom' },
+    ],
+  },
+] as const;

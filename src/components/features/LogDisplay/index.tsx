@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { LogListView, LogToolbar } from '../../ui';
-import { LogDashboard, IncidentDrawer } from '../';
+import { LogDashboard, IncidentDrawer, Fireworks } from '../';
 import { analyzeIncident, summarizeIncidentWithOllama, type IncidentAnalysis } from '../../../services';
 import { startOfDay, endOfDay } from 'date-fns';
 import { type LogEntry } from '../../../types';
@@ -18,6 +18,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
   const [llmAvailable, setLlmAvailable] = useState<'none' | 'ollama'>(LLM_PROVIDERS.NONE);
   const [llmLoading, setLlmLoading] = useState(false);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [showFireworks, setShowFireworks] = useState(false);
   const lastSummarizedFileRef = useRef<string | null>(null);
   const scrollContainerRef = useRef(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -80,9 +81,18 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
     return results;
   }, [filteredEntries, searchQuery]);
 
-  // Reset search index when search query changes
+  // Reset search index when search query changes and check for easter egg
   useEffect(() => {
     setCurrentSearchIndex(0);
+    
+    // Easter egg: show fireworks when searching for "tal"
+    if (searchQuery.toLowerCase() === 'tal') {
+      setShowFireworks(true);
+      const timer = setTimeout(() => {
+        setShowFireworks(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
   }, [searchQuery]);
 
   const searchPattern = useMemo(() => {
@@ -262,6 +272,7 @@ export default function LogDisplay({ entries, fileName, onClear }: { entries: Lo
         />
       </div>
       <IncidentDrawer open={isIncidentOpen} onClose={() => setIsIncidentOpen(false)} analysis={incident} llmAvailable={llmAvailable} llmLoading={llmLoading} />
+      {showFireworks && <Fireworks duration={4000} />}
     </div>
   );
 }

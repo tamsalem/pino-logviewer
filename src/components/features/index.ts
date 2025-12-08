@@ -5,3 +5,5 @@ export { default as LogUploader } from './LogUploader';
 export { default as LogPaste } from './LogPaste';
 export { default as HistoryScreen } from './HistoryScreen';
 export { default as WelcomeScreen } from './WelcomeScreen';
+export { default as KeyboardShortcuts } from './KeyboardShortcuts';
+export { default as Fireworks } from './Fireworks';

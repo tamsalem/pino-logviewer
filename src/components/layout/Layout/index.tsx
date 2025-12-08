@@ -57,11 +57,18 @@ export default function Layout({ children, onFileUpload, onShowHistory }: {
                       variant="ghost"
                       size="icon"
                       onClick={onShowHistory}
-                      className="hover:bg-opacity-10"
+                      className="transition-colors"
                       style={{
-                        color: 'var(--logviewer-text-secondary)',
-                        '--tw-bg-opacity': '0.1'
-                      } as any}
+                        color: 'var(--logviewer-text-secondary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-hover)';
+                        e.currentTarget.style.color = 'var(--logviewer-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'var(--logviewer-text-secondary)';
+                      }}
                     >
                       <History className="w-4 h-4" />
                     </Button>
@@ -84,11 +91,18 @@ export default function Layout({ children, onFileUpload, onShowHistory }: {
                       variant="ghost"
                       size="icon"
                       onClick={toggleTheme}
-                      className="hover:bg-opacity-10"
+                      className="transition-colors"
                       style={{
-                        color: 'var(--logviewer-text-secondary)',
-                        '--tw-bg-opacity': '0.1'
-                      } as any}
+                        color: 'var(--logviewer-text-secondary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-hover)';
+                        e.currentTarget.style.color = 'var(--logviewer-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'var(--logviewer-text-secondary)';
+                      }}
                     >
                       {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                     </Button>
@@ -111,11 +125,18 @@ export default function Layout({ children, onFileUpload, onShowHistory }: {
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsSettingsOpen(true)}
-                      className="hover:bg-opacity-10"
+                      className="transition-colors"
                       style={{
-                        color: 'var(--logviewer-text-secondary)',
-                        '--tw-bg-opacity': '0.1'
-                      } as any}
+                        color: 'var(--logviewer-text-secondary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--logviewer-bg-hover)';
+                        e.currentTarget.style.color = 'var(--logviewer-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'var(--logviewer-text-secondary)';
+                      }}
                     >
                       <Settings className="w-4 h-4" />
                     </Button>
